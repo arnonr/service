@@ -21,10 +21,10 @@ services:
         volumes:
             - '.:/var/www/html'
         networks:
-            - sail
+            - service
         depends_on:
-            - mysql
-    mysql:
+            - service.mysql
+    service.mysql:
         image: 'mysql/mysql-server:8.0'
         ports:
             - '3309:3306'
@@ -39,15 +39,15 @@ services:
             - './data:/var/lib/mysql'
             - './vendor/laravel/sail/database/mysql/create-testing-database.sh:/docker-entrypoint-initdb.d/10-create-testing-database.sh'
         networks:
-            - sail
+            - service
         healthcheck:
             test: ["CMD", "mysqladmin", "ping", "-p${DB_PASSWORD}"]
             retries: 3
             timeout: 5s
-    phpmyadmin:
+    service.phpmyadmin:
         image: phpmyadmin
         links:
-            - mysql
+            - service.mysql
         environment:
             PMA_HOST: mysql
             UPLOAD_LIMIT: 300M
@@ -55,10 +55,10 @@ services:
         ports:
             - 8108:80
         networks:
-            - sail
+            - service
 networks:
-    sail:
+    service:
         driver: bridge
 volumes:
-    sail-mysql:
+    service-mysql:
         driver: local
