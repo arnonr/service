@@ -15,23 +15,23 @@ export default {
   //     },
   // },
   actions: {
-    fetchMous(ctx, queryParams) {
+    fetchFixes(ctx, queryParams) {
       return new Promise((resolve, reject) => {
         axios
-          .get("/mou", { params: queryParams })
+          .get("/fix", { params: queryParams })
           .then((response) => resolve(response))
           .catch((error) => reject(error));
       });
     },
-    fetchMou(ctx, { id }) {
+    fetchFix(ctx, { id }) {
       return new Promise((resolve, reject) => {
         axios
-          .get(`/mou/${id}`)
+          .get(`/fix/${id}`)
           .then((response) => resolve(response))
           .catch((error) => reject(error));
       });
     },
-    addMou(ctx, dataSend) {
+    addFix(ctx, dataSend) {
       var form_data = new FormData();
 
       for (var key in dataSend) {
@@ -40,7 +40,7 @@ export default {
 
       return new Promise((resolve, reject) => {
         axios
-          .post("/mou", form_data, {
+          .post("/fix", form_data, {
             headers: {
               "content-type": "multipart/form-data",
             },
@@ -63,7 +63,7 @@ export default {
 
       return new Promise((resolve, reject) => {
         axios
-          .post(`/mou/${dataSend.id}`, form_data, {
+          .post(`/fix/${dataSend.id}`, form_data, {
             headers: {
               "content-type": "multipart/form-data",
             },
@@ -75,10 +75,10 @@ export default {
       });
     },
 
-    deleteMou(ctx, { id }) {
+    deleteFix(ctx, { id }) {
       return new Promise((resolve, reject) => {
         axios
-          .delete(`/mou/${id}`)
+          .delete(`/fix/${id}`)
           .then((response) => {
             return resolve(response);
           })

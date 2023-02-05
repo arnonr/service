@@ -3,6 +3,7 @@ import {
   BRow,
   BCol,
   BFormGroup,
+  BInputGroup,
   BFormInput,
   BFormTextarea,
   BForm,
@@ -12,11 +13,9 @@ import {
   BFormFile,
   BOverlay,
   BSpinner,
-  BInputGroup,
-  BInputGroupPrepend,
 } from "bootstrap-vue";
 import vSelect from "vue-select";
-import { ValidationProvider, ValidationObserver } from "vee-validate";
+import { ValidationProvider, ValidationObserver, validate } from "vee-validate";
 import { required, email } from "@validations";
 import flatPickr from "vue-flatpickr-component";
 import "flatpickr/dist/flatpickr.css";
@@ -29,7 +28,7 @@ import ToastificationContent from "@core/components/toastification/Toastificatio
 
 import { onUnmounted, ref, reactive, watch } from "@vue/composition-api";
 import store from "@/store";
-import mouStoreModule from "../mouStoreModule";
+import mouStoreModule from "../fixStoreModule";
 
 export default {
   components: {
@@ -40,6 +39,7 @@ export default {
     BRow,
     BCol,
     BFormGroup,
+    BInputGroup,
     BFormInput,
     BFormTextarea,
     BForm,
@@ -51,8 +51,6 @@ export default {
     BFormFile,
     BOverlay,
     BSpinner,
-    BInputGroup,
-    BInputGroupPrepend,
   },
   data() {
     return {
@@ -67,16 +65,16 @@ export default {
     };
   },
   setup() {
-    const MOU_EDIT_APP_STORE_MODULE_NAME = "mou-edit";
+    const MOU_ADD_APP_STORE_MODULE_NAME = "mou-add";
 
     // Register module
-    if (!store.hasModule(MOU_EDIT_APP_STORE_MODULE_NAME))
-      store.registerModule(MOU_EDIT_APP_STORE_MODULE_NAME, mouStoreModule);
+    if (!store.hasModule(MOU_ADD_APP_STORE_MODULE_NAME))
+      store.registerModule(MOU_ADD_APP_STORE_MODULE_NAME, mouStoreModule);
 
     // UnRegister on leave
     onUnmounted(() => {
-      if (store.hasModule(MOU_EDIT_APP_STORE_MODULE_NAME))
-        store.unregisterModule(MOU_EDIT_APP_STORE_MODULE_NAME);
+      if (store.hasModule(MOU_ADD_APP_STORE_MODULE_NAME))
+        store.unregisterModule(MOU_ADD_APP_STORE_MODULE_NAME);
     });
 
     const toast = useToast();
@@ -89,7 +87,7 @@ export default {
       partner: "",
       partner_logo_file: null,
       partner_logo_file_old: null,
-      mou_file: null,
+      mou_file_file: null,
       mou_file_old: null,
       host_id: { title: null, code: null },
       country_code: { title: null, code: null },
@@ -128,7 +126,7 @@ export default {
     });
 
     store
-      .dispatch("mou-edit/fetchHosts")
+      .dispatch("mou-add/fetchHosts")
       .then((response) => {
         const { data } = response.data;
         selectOptions.value.hosts = data.map((d) => {
@@ -151,76 +149,15 @@ export default {
       });
 
     store
-      .dispatch("mou-edit/fetchCountries")
+      .dispatch("mou-add/fetchCountries")
       .then((response) => {
         const { data } = response.data;
         selectOptions.value.countries = data.map((d) => {
           return {
             code: d.ct_code,
-            title: d.ct_nameTHA,
+            title: d.ct_nameTHA + " (" + d.ct_nameENG + ")",
           };
         });
-      })
-      .catch((error) => {
-        console.log(error);
-        toast({
-          component: ToastificationContent,
-          props: {
-            title: "Error fetching Country's list",
-            icon: "AlertTriangleIcon",
-            variant: "danger",
-          },
-        });
-      });
-
-    store
-      .dispatch("mou-edit/fetchMou", {
-        id: router.currentRoute.params.id,
-      })
-      .then((response) => {
-        const { data } = response.data;
-        //
-        item.id = data.id;
-        item.name = data.name;
-        item.partner = data.partner;
-        item.host_id = { title: data.host_name, code: data.host_id };
-        item.country_code = {
-          title: data.country_name,
-          code: data.country_code,
-        };
-        item.start_date = data.start_date;
-        item.end_date = data.end_date;
-        item.address = data.address ? data.address : "";
-        item.type = { title: data.type_name, code: data.type };
-        item.is_publish =
-          data.is_publish == 1
-            ? { title: "Publish", code: data.is_publish }
-            : { title: "Non-Publish", code: data.is_publish };
-        item.partner_contact_name = data.partner_contact_name
-          ? data.partner_contact_name
-          : "";
-        item.partner_contact_phone = data.partner_contact_phone
-          ? data.partner_contact_phone
-          : "";
-        item.partner_contact_email = data.partner_contact_email
-          ? data.partner_contact_email
-          : "";
-        item.host_contact_name = data.host_contact_name
-          ? data.host_contact_name
-          : "";
-        item.host_contact_phone = data.host_contact_phone
-          ? data.host_contact_phone
-          : "";
-        item.host_contact_email = data.host_contact_email
-          ? data.host_contact_email
-          : "";
-
-        item.partner_logo_file_old = data.partner_logo_file;
-
-        item.mou_file_old = null;
-        if (data.mou_file != null) {
-          item.mou_file_old = data.mou_file;
-        }
       })
       .catch((error) => {
         console.log(error);
@@ -246,7 +183,6 @@ export default {
       overLay.value = true;
 
       let dataSend = {
-        id: item.id,
         name: item.name,
         partner: item.partner,
         partner_logo_file: item.partner_logo_file,
@@ -267,10 +203,11 @@ export default {
       };
 
       store
-        .dispatch("mou-edit/editMou", dataSend)
+        .dispatch("mou-add/addMou", dataSend)
         .then((response) => {
           if (response.data.message == "success") {
-            localStorage.setItem("updated", 1);
+            localStorage.setItem("added", 1);
+            // console.log()
             router.push({
               name: "mou-view",
               params: { id: response.data.data.id },
@@ -291,7 +228,7 @@ export default {
           toast({
             component: ToastificationContent,
             props: {
-              title: "Update MOU Error",
+              title: "Add MOU Error",
               icon: "AlertTriangleIcon",
               variant: "danger",
             },
@@ -306,11 +243,7 @@ export default {
         if (value.code == 1) {
           item.country_code = { title: "ไทย (Thailand)", code: "THA" };
         } else {
-          if (item.country_code.hasOwnProperty("code")) {
-            if (item.country_code.code == "THA") {
-              item.country_code = { title: null, code: null };
-            }
-          }
+          item.country_code = { title: null, code: null };
         }
       }
     );
@@ -352,7 +285,7 @@ label {
         <b-form>
           <b-row>
             <b-col cols="12" class="text-center">
-              <h2>EDIT MOU</h2>
+              <h2>ADD MOU</h2>
               <hr />
             </b-col>
           </b-row>
@@ -386,6 +319,7 @@ label {
                 </validation-provider>
               </b-form-group>
             </b-col>
+
             <b-col cols="12">
               <b-form-group
                 label="รูปโลโก้คู่สัญญา/Partner Logo"
@@ -395,24 +329,15 @@ label {
                 <validation-provider
                   name="partner_logo_file"
                   #default="{ errors }"
+                  rules="required"
                 >
-                  <b-input-group>
-                    <b-input-group-prepend>
-                      <b-button
-                        variant="outline-warning"
-                        target="_blank"
-                        :href="item.partner_logo_file_old"
-                      >
-                        <feather-icon icon="FileTextIcon" /> ดูไฟล์เดิม
-                      </b-button>
-                    </b-input-group-prepend>
-                    <b-form-file
-                      id="partner_logo_file"
-                      v-model="item.partner_logo_file"
-                      placeholder="Choose a new file or drop it here..."
-                      drop-placeholder="Drop file here..."
-                    />
-                  </b-input-group>
+                  <b-form-file
+                    id="partner_logo_file"
+                    v-model="item.partner_logo_file"
+                    placeholder="Choose a file or drop it here..."
+                    drop-placeholder="Drop file here..."
+                  />
+
                   <small class="text-danger">{{ errors[0] }}</small>
                 </validation-provider>
               </b-form-group>
@@ -494,10 +419,11 @@ label {
               >
                 <validation-provider
                   #default="{ errors }"
-                  name="Host Partner Name"
+                  name="Partner Contact Name"
+                  rule="required"
                 >
                   <b-form-input
-                    id="host_partner_name"
+                    id="partner_contact_name"
                     placeholder=""
                     v-model="item.partner_contact_name"
                     :state="errors.length > 0 ? false : null"
@@ -590,6 +516,7 @@ label {
                 <validation-provider
                   #default="{ errors }"
                   name="Host Contact Name"
+                  rule="required"
                 >
                   <b-form-input
                     id="host_contact_name"
@@ -611,6 +538,7 @@ label {
                 <validation-provider
                   #default="{ errors }"
                   name="Host Contact Phone"
+                  rule="required"
                 >
                   <b-form-input
                     id="host_contact_phone"
@@ -632,6 +560,7 @@ label {
                 <validation-provider
                   #default="{ errors }"
                   name="Host Contact Email"
+                  rule="required"
                 >
                   <b-form-input
                     id="host_contact_email"
@@ -733,24 +662,18 @@ label {
                 label-for="mou_file"
                 label-cols-md="4"
               >
-                <validation-provider name="mou_file" #default="{ errors }">
-                  <b-input-group>
-                    <b-input-group-prepend>
-                      <b-button
-                        variant="outline-warning"
-                        target="_blank"
-                        :href="item.mou_file_old"
-                      >
-                        <feather-icon icon="FileTextIcon" /> ดูไฟล์เดิม
-                      </b-button>
-                    </b-input-group-prepend>
-                    <b-form-file
-                      id="mou_file"
-                      v-model="item.mou_file"
-                      placeholder="Choose a new file or drop it here..."
-                      drop-placeholder="Drop file here..."
-                    />
-                  </b-input-group>
+                <validation-provider
+                  name="mou_file"
+                  #default="{ errors }"
+                  rules="required"
+                >
+                  <b-form-file
+                    id="mou_file"
+                    v-model="item.mou_file"
+                    placeholder="Choose a file or drop it here..."
+                    drop-placeholder="Drop file here..."
+                  />
+
                   <small class="text-danger">{{ errors[0] }}</small>
                 </validation-provider>
               </b-form-group>

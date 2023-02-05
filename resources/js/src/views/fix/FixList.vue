@@ -32,7 +32,7 @@ import {
   onUnmounted,
 } from "@vue/composition-api";
 import store from "@/store";
-import mouStoreModule from "./mouStoreModule";
+import fixStoreModule from "./fixStoreModule";
 
 import { useToast } from "vue-toastification/composition";
 import ToastificationContent from "@core/components/toastification/ToastificationContent.vue";
@@ -77,16 +77,16 @@ export default {
     };
   },
   setup() {
-    const MOU_APP_STORE_MODULE_NAME = "mou";
+    const FIX_APP_STORE_MODULE_NAME = "fix";
 
     // Register module
-    if (!store.hasModule(MOU_APP_STORE_MODULE_NAME))
-      store.registerModule(MOU_APP_STORE_MODULE_NAME, mouStoreModule);
+    if (!store.hasModule(FIX_APP_STORE_MODULE_NAME))
+      store.registerModule(FIX_APP_STORE_MODULE_NAME, fixStoreModule);
 
     // UnRegister on leave
     onUnmounted(() => {
-      // if (store.hasModule(MOU_APP_STORE_MODULE_NAME))
-      // store.unregisterModule(MOU_APP_STORE_MODULE_NAME);
+      // if (store.hasModule(FIX_APP_STORE_MODULE_NAME))
+      // store.unregisterModule(FIX_APP_STORE_MODULE_NAME);
     });
 
     const toast = useToast();
@@ -194,7 +194,7 @@ export default {
     }
 
     store
-      .dispatch("mou/fetchHosts")
+      .dispatch("fix/fetchHosts")
       .then((response) => {
         const { data } = response.data;
         selectOptions.value.hosts = data.map((d) => {
@@ -217,7 +217,7 @@ export default {
       });
 
     store
-      .dispatch("mou/fetchCountries")
+      .dispatch("fix/fetchCountries")
       .then((response) => {
         const { data } = response.data;
         selectOptions.value.countries = data.map((d) => {
@@ -275,7 +275,7 @@ export default {
 
       isOverLay.value = true;
       store
-        .dispatch("mou/fetchMous", {
+        .dispatch("fix/fetchFixes", {
           perPage: perPage.value.code,
           currentPage: currentPage.value == 0 ? undefined : currentPage.value,
           orderBy: orderBy.value.code,
@@ -294,7 +294,7 @@ export default {
           toast({
             component: ToastificationContent,
             props: {
-              title: "Error fetching Mou's list",
+              title: "Error fetching Fix's list",
               icon: "AlertTriangleIcon",
               variant: "danger",
             },
@@ -361,17 +361,17 @@ export default {
 </script>
 
 <style lang="scss">
-.mou-item-card {
+.fix-item-card {
   border: 10px solid;
   cursor: pointer;
 }
-.mou-item-active {
+.fix-item-active {
   border-color: #99cc33;
 }
-.mou-item-warning {
+.fix-item-warning {
   border-color: #ffcc00;
 }
-.mou-item-inActive {
+.fix-item-inActive {
   border-color: #ff0000;
 }
 
@@ -592,7 +592,7 @@ label {
               <b-button
                 v-if="isAdmin || isStaff"
                 variant="outline-success"
-                @click="$router.push({ name: 'mou-add' })"
+                @click="$router.push({ name: 'fix-add' })"
                 class="float-right"
               >
                 <feather-icon icon="PlusIcon" />
@@ -612,14 +612,14 @@ label {
               class="col-md-4 col-sm-6 col-lg-3"
             >
               <b-card
-                :class="'mou-item-card pa-2 mou-item-' + it.status"
+                :class="'fix-item-card pa-2 fix-item-' + it.status"
                 :img-src="it.partner_logo_file"
                 img-top
                 img-alt="card img"
                 class="position-static"
                 @click="
                   $router.push({
-                    name: 'mou-view',
+                    name: 'fix-view',
                     params: { id: it.id },
                   })
                 "
@@ -657,7 +657,7 @@ label {
                 :total-rows="totalItems"
                 :per-page="perPage.code"
                 align="center"
-                aria-controls="my-mou"
+                aria-controls="my-fix"
                 @change="onChangePage"
               />
             </b-col>

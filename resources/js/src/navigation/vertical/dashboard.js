@@ -9,21 +9,21 @@ export default [
     title: "เว็บไซต์/Website",
     href: "http://sci.kmutnb.ac.th",
     icon: "ExternalLinkIcon",
+    
     resource: "Auth",
     action: "read",
   },
   {
-    title: "ความร่วมมือ/MOU",
-    route: "mou-list",
-    icon: "FileTextIcon",
+    title: "แบบฟอร์มแจ้งซ่อม",
+    route: "fix-add",
+    icon: "FileIcon",
     resource: "Auth",
     action: "read",
   },
-
   {
-    title: "รายงาน/Report",
-    route: "report",
-    icon: "FileTextIcon",
+    title: "รายการแจ้งซ่อม",
+    route: "fix-list",
+    icon: "ListIcon",
     resource: "Auth",
     action: "read",
   },

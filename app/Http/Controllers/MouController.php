@@ -9,15 +9,15 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
-const whitelist = ['127.0.0.1', "::1","localhost:8105"];
+const whitelist = ['127.0.0.1', "::1","localhost:8107"];
 
 class MouController extends Controller
 {
-    protected $uploadUrl = 'http://143.198.208.110:8105/storage/';
+    protected $uploadUrl = 'http://143.198.208.110:8107/storage/';
     public function getAll(Request $request)
     {
         if(in_array($_SERVER['HTTP_HOST'], whitelist)){
-            $this->uploadUrl = 'http://localhost:8105/storage/';
+            $this->uploadUrl = 'http://localhost:8107/storage/';
         }
 
         // User DB
@@ -25,7 +25,7 @@ class MouController extends Controller
                 'mou.id as id',
                 'mou.name as name',
                 'mou.partner as partner',
-                DB::raw("(CASE WHEN partner_logo_file = NULL THEN 'http://localhost:8105/storage/mou/logo/scg.png'
+                DB::raw("(CASE WHEN partner_logo_file = NULL THEN 'http://localhost:8107/storage/mou/logo/scg.png'
                     ELSE CONCAT('".$this->uploadUrl."',partner_logo_file) END) AS partner_logo_file"),
                 DB::raw("(CASE WHEN mou_file = NULL THEN NULL
                     ELSE CONCAT('".$this->uploadUrl."',mou_file) END) AS mou_file"),
@@ -151,7 +151,7 @@ class MouController extends Controller
     public function get($id)
     {
         if(in_array($_SERVER['HTTP_HOST'], whitelist)){
-            $this->uploadUrl = 'http://localhost:8105/storage/';
+            $this->uploadUrl = 'http://localhost:8107/storage/';
         }
         
         // User DB
@@ -159,7 +159,7 @@ class MouController extends Controller
             'mou.id as id',
             'mou.name as name',
             'mou.partner as partner',
-            DB::raw("(CASE WHEN partner_logo_file = NULL THEN 'http://localhost:8105/storage/mou/logo/scg.png'
+            DB::raw("(CASE WHEN partner_logo_file = NULL THEN 'http://localhost:8107/storage/mou/logo/scg.png'
                 ELSE CONCAT('".$this->uploadUrl."',partner_logo_file) END) AS partner_logo_file"),
             DB::raw("(CASE WHEN mou_file = NULL THEN NULL
                 ELSE CONCAT('".$this->uploadUrl."',mou_file) END) AS mou_file"),

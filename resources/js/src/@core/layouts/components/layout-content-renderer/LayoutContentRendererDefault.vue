@@ -42,7 +42,7 @@ export default {
   },
   data() {
     return {
-      bannerImg: require("@/assets/images/banner/banner.jpeg"),
+      bannerImg: require("@/assets/images/banner/banner-service.jpeg"),
     };
   },
   setup() {

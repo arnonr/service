@@ -10,7 +10,7 @@ import {
 } from "@/auth/utils";
 import pages from "./routes/pages";
 // import useJwt from "@/auth/jwt/useJwt";
-import mous from "./routes/mous";
+import fixs from "./routes/fixs";
 import reports from "./routes/reports";
 import users from "./routes/users";
 Vue.use(VueRouter);
@@ -41,7 +41,7 @@ const router = new VueRouter({
       //   ],
       // },
     },
-    ...mous,
+    ...fixs,
     ...pages,
     ...reports,
     ...users,

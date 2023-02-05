@@ -2,7 +2,7 @@
   <div class="navbar-header d-xl-block d-none" style="left: calc(10% - 56px)">
     <ul class="nav navbar-nav">
       <li class="nav-item">
-        <b-link class="navbar-brand" :to="{name: 'mou-list'}">
+        <b-link class="navbar-brand" :to="{name: 'fix-list'}">
           <span class="brand-logo">
             <b-img :src="appLogoImage" alt="logo" />
           </span>

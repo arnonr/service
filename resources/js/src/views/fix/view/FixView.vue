@@ -37,7 +37,7 @@ dayjs.extend(buddhistEra);
 
 import { onUnmounted, ref, reactive } from "@vue/composition-api";
 import store from "@/store";
-import mouStoreModule from "../mouStoreModule";
+import fixStoreModule from "../fixStoreModule";
 import { getUserData } from "@/auth/utils";
 
 export default {
@@ -78,17 +78,17 @@ export default {
     };
   },
   setup() {
-    const MOU_VIEW_APP_STORE_MODULE_NAME = "mou-view";
+    const FIX_VIEW_APP_STORE_MODULE_NAME = "fix-view";
     const showBtnAdmin = ref(true);
 
     // Register module
-    if (!store.hasModule(MOU_VIEW_APP_STORE_MODULE_NAME))
-      store.registerModule(MOU_VIEW_APP_STORE_MODULE_NAME, mouStoreModule);
+    if (!store.hasModule(FIX_VIEW_APP_STORE_MODULE_NAME))
+      store.registerModule(FIX_VIEW_APP_STORE_MODULE_NAME, fixStoreModule);
 
     // UnRegister on leave
     onUnmounted(() => {
-      if (store.hasModule(MOU_VIEW_APP_STORE_MODULE_NAME))
-        store.unregisterModule(MOU_VIEW_APP_STORE_MODULE_NAME);
+      if (store.hasModule(FIX_VIEW_APP_STORE_MODULE_NAME))
+        store.unregisterModule(FIX_VIEW_APP_STORE_MODULE_NAME);
     });
 
     const toast = useToast();
@@ -159,7 +159,7 @@ export default {
       toast({
         component: ToastificationContent,
         props: {
-          title: "Added MOU",
+          title: "Added FIX",
           icon: "CheckIcon",
           variant: "success",
         },
@@ -172,7 +172,7 @@ export default {
       toast({
         component: ToastificationContent,
         props: {
-          title: "Updated MOU",
+          title: "Updated FIX",
           icon: "CheckIcon",
           variant: "success",
         },
@@ -205,7 +205,7 @@ export default {
     });
 
     store
-      .dispatch("mou-view/fetchMou", { id: router.currentRoute.params.id })
+      .dispatch("fix-view/fetchFix", { id: router.currentRoute.params.id })
       .then((response) => {
         const { data } = response.data;
         //
@@ -216,7 +216,7 @@ export default {
         toast({
           component: ToastificationContent,
           props: {
-            title: "Error Get MOU Information",
+            title: "Error Get FIX Information",
             icon: "AlertTriangleIcon",
             variant: "danger",
           },
@@ -225,8 +225,8 @@ export default {
 
     const fetchActivities = () => {
       store
-        .dispatch("mou-view/fetchActivities", {
-          mou_id: router.currentRoute.params.id,
+        .dispatch("fix-view/fetchActivities", {
+          fix_id: router.currentRoute.params.id,
         })
         .then((response) => {
           const { data } = response.data;
@@ -278,7 +278,7 @@ export default {
 
     const onDelete = (id) => {
       store
-        .dispatch("mou-view/deleteMou", { id: id })
+        .dispatch("fix-view/deleteFix", { id: id })
         .then((response) => {
           if (response.data.message == "success") {
             router.push({ name: "lists" });
@@ -328,7 +328,7 @@ export default {
 
     const onActivityDelete = (id) => {
       store
-        .dispatch("mou-view/deleteActivity", { id: id })
+        .dispatch("fix-view/deleteActivity", { id: id })
         .then((response) => {
           if (response.data.message == "success") {
             toast({
@@ -403,7 +403,7 @@ export default {
 
       if (activityItem.value.id == null) {
         store
-          .dispatch("mou-view/addActivity", dataSend)
+          .dispatch("fix-view/addActivity", dataSend)
           .then(async (response) => {
             if (response.data.message == "success") {
               fetchActivities();
@@ -437,7 +437,7 @@ export default {
         dataSend["id"] = activityItem.value.id;
 
         store
-          .dispatch("mou-view/editActivity", dataSend)
+          .dispatch("fix-view/editActivity", dataSend)
           .then(async (response) => {
             if (response.data.message == "success") {
               fetchActivities();
@@ -543,7 +543,7 @@ h6,
     >
       <b-row>
         <b-col class="text-center mt-2">
-          <h3>MOU Information</h3>
+          <h3>FIX Information</h3>
           <hr width="80px;" style="border: solid 2px; border-color: #ffcb05" />
         </b-col>
       </b-row>
@@ -737,13 +737,13 @@ h6,
             variant="outline-primary"
             @click="
               $router.push({
-                name: 'mou-edit',
+                name: 'fix-edit',
                 params: { id: item.id },
               })
             "
             v-if="isAdmin || isStaff"
           >
-            Edit MOU</b-button
+            Edit FIX</b-button
           >
           <b-button
             type="button"
@@ -751,7 +751,7 @@ h6,
             @click="onConfirmDelete(item.id)"
             v-if="isAdmin"
           >
-            Delete MOU</b-button
+            Delete FIX</b-button
           >
         </b-col>
       </b-row>
