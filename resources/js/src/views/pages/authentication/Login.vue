@@ -23,7 +23,7 @@
         <validation-observer ref="loginForm" #default="{ invalid }">
           <b-form class="auth-login-form mt-2" @submit.prevent="login">
             <!-- email -->
-            <b-form-group label="ICIT Account" label-for="login-username">
+            <b-form-group label="ICITaccount" label-for="login-username">
               <validation-provider
                 #default="{ errors }"
                 name="username"
@@ -35,7 +35,7 @@
                   v-model="username"
                   :state="errors.length > 0 ? false : null"
                   name="login-username"
-                  placeholder="pattamak"
+                  placeholder="ICITaccount"
                   autofocus
                 />
                 <small class="text-danger">{{ errors[0] }}</small>
