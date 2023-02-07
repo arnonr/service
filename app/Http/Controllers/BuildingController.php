@@ -3,17 +3,17 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Host;
+use App\Models\Building;
 use Validator;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
-class HostController extends Controller
+class BuildingController extends Controller
 {
     public function getAll(Request $request)
     {
         // User DB
-        $data = Host::select(
+        $data = Building::select(
             'id as id',
             'name as name',
             'name_en as name_en',
@@ -59,7 +59,7 @@ class HostController extends Controller
     public function get($id)
     {
         // User DB
-        $data = PaperType::select(
+        $data = Building::select(
             'id as id',
             'name as name',
             'name_en as name_en',
@@ -87,7 +87,7 @@ class HostController extends Controller
 
         // $name = $request->name;
 
-        $data = new Host;
+        $data = new Building;
         $data->name = $request->name;
         $data->is_publish = $request->is_publish;
         $data->created_by = 'arnonr';
@@ -111,7 +111,7 @@ class HostController extends Controller
         $id = $request->id;
         // $name = $request->name;
 
-        $data = Host::where('id', $id)->first();
+        $data = Building::where('id', $id)->first();
 
         $data->name = $request->name;
         $data->is_publish = $request->is_publish;
@@ -128,7 +128,7 @@ class HostController extends Controller
 
     public function delete($id)
     {
-        $data = Host::where('id', $id)->first();
+        $data = Building::where('id', $id)->first();
 
         $data->deleted_at = Carbon::now();
         $data->save();

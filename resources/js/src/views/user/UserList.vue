@@ -334,6 +334,9 @@ export default {
       };
 
       if (item.value.id == null) {
+
+        dataSend.email = item.value.username+"@kmutnb.ac.th";
+
         store
           .dispatch("user-list/addUser", dataSend)
           .then(async (response) => {
@@ -557,7 +560,7 @@ export default {
               <b-form>
                 <div class="row">
                   <b-form-group
-                    label="username"
+                    label="ICITaccount"
                     label-for="username"
                     class="col-md"
                   >
@@ -578,7 +581,7 @@ export default {
                   </b-form-group>
                 </div>
                 <!--  -->
-                <div class="row">
+                <!-- <div class="row">
                   <b-form-group label="email" label-for="email" class="col-md">
                     <validation-provider
                       #default="{ errors }"
@@ -594,7 +597,7 @@ export default {
                       <small class="text-danger">{{ errors[0] }}</small>
                     </validation-provider>
                   </b-form-group>
-                </div>
+                </div> -->
 
                 <div class="row">
                   <b-form-group

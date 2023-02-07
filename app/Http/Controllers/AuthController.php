@@ -50,6 +50,7 @@ class AuthController extends Controller
                 'user.username as username',
                 'user.firstname as firstname',
                 'user.lastname as lastname',
+                'user.name as name',
                 'user.type as type',
                 'user.avatar as avatar',
                 'user.status as status',

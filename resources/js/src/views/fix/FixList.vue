@@ -13,11 +13,10 @@ import {
   BOverlay,
   BFormGroup,
   BCardText,
+  BTable,
+  BForm,
 } from "bootstrap-vue";
 import vSelect from "vue-select";
-import flatPickr from "vue-flatpickr-component";
-import "flatpickr/dist/flatpickr.css";
-import { Thai } from "flatpickr/dist/l10n/th.js";
 
 import dayjs from "dayjs";
 import "dayjs/locale/th";
@@ -26,24 +25,21 @@ dayjs.extend(buddhistEra);
 
 import {
   ref,
-  watch,
   watchEffect,
   reactive,
   onUnmounted,
+  computed,
 } from "@vue/composition-api";
 import store from "@/store";
 import fixStoreModule from "./fixStoreModule";
-
 import { useToast } from "vue-toastification/composition";
 import ToastificationContent from "@core/components/toastification/ToastificationContent.vue";
+import Swal from "sweetalert2";
+import { ValidationProvider, ValidationObserver } from "vee-validate";
+import { required } from "@validations";
 import { getUserData } from "@/auth/utils";
 
 export default {
-  filters: {
-    formatYear(year, buddhistYear) {
-      return buddhistYear ? +year + 543 : year;
-    },
-  },
   components: {
     BCard,
     BRow,
@@ -58,36 +54,23 @@ export default {
     BOverlay,
     vSelect,
     BFormGroup,
-    flatPickr,
     BPagination,
     BCardText,
     dayjs,
-  },
-  data() {
-    return {
-      configDate: {
-        mode: "single",
-        altInput: true,
-        altFormat: "d/m/Y",
-        dateFormat: "Y-m-d",
-        locale: Thai,
-        disableMobile: "true",
-      },
-      buddhistYear: true,
-    };
+    BTable,
+    BForm,
+    ValidationProvider,
+    ValidationObserver,
+    required,
   },
   setup() {
-    const FIX_APP_STORE_MODULE_NAME = "fix";
+    const FIX_APP_STORE_MODULE_NAME = "fix-list";
 
     // Register module
     if (!store.hasModule(FIX_APP_STORE_MODULE_NAME))
       store.registerModule(FIX_APP_STORE_MODULE_NAME, fixStoreModule);
 
-    // UnRegister on leave
-    onUnmounted(() => {
-      // if (store.hasModule(FIX_APP_STORE_MODULE_NAME))
-      // store.unregisterModule(FIX_APP_STORE_MODULE_NAME);
-    });
+    onUnmounted(() => {});
 
     const toast = useToast();
 
@@ -102,61 +85,105 @@ export default {
       });
     };
 
-    const items = ref([]);
     const isAdmin = getUserData().type == "admin" ? true : false;
-    const isStaff = getUserData().type == "staff" ? true : false;
+
+    const items = ref([]);
+
     const isOverLay = ref(false);
+    const simpleRules = ref();
+
     const perPage = ref({ title: "10", code: 10 });
     const currentPage = ref(1);
     const totalPage = ref(1);
     const totalItems = ref(0);
     const orderBy = ref({
-      title: "วันเริ่มสัญญา/Start Date",
-      code: "start_date",
+      title: "วันที่แจ้ง",
+      code: "fix_date",
     });
     const order = ref({ title: "DESC", code: "desc" });
 
-    const advancedSearch = reactive({
+    const fields = reactive([
+      {
+        key: "id",
+        label: "Id",
+        visible: false,
+      },
+      {
+        key: "title",
+        label: "หัวข้อแจ้งซ่อม",
+        sortable: true,
+        visible: true,
+        class: "text-center",
+        tdClass: "mw-3-5",
+      },
+      {
+        key: "place",
+        label: "สถานที่",
+        sortable: true,
+        visible: true,
+        class: "text-center",
+        tdClass: "mw-3-5",
+      },
+      {
+        key: "fix_date",
+        label: "วันที่แจ้ง",
+        sortable: true,
+        visible: true,
+        class: "text-center",
+        tdClass: "mw-3-5",
+      },
+      {
+        key: "name",
+        label: "ผู้แจ้ง",
+        sortable: true,
+        visible: true,
+        class: "text-center",
+        tdClass: "mw-3-5",
+      },
+      {
+        key: "status",
+        label: "สถานะ",
+        sortable: true,
+        visible: true,
+        class: "text-center",
+        tdClass: "mw-3-5",
+      },
+      {
+        key: "email",
+        label: "เมล",
+        sortable: true,
+        visible: false,
+        class: "text-center",
+        tdClass: "mw-3-7",
+      },
+      {
+        key: "action",
+        label: "ดูข้อมูล",
+        visible: true,
+        class: "text-center",
+        tdClass: "mw-8",
+      },
+    ]);
+
+    const visibleFields = computed(() => fields.filter((f) => f.visible));
+
+    const item = ref({
+      title: "",
+      place: "",
+      detail: "",
+      fix_date: dayjs().format("YYYY-MM-DD"),
       name: "",
-      partner: "",
-      host_id: null,
-      country_code: null,
-      start_date: null,
-      end_date: null,
-      type: null,
-      // is_publish: { title: "Publish", code: 1 },
-      status: null,
-      year: null,
     });
 
-    const resetAdvancedSearch = () => {
-      advancedSearch.name = "";
-      advancedSearch.partner = "";
-      advancedSearch.host_id = null;
-      advancedSearch.country_code = null;
-      advancedSearch.start_date = null;
-      advancedSearch.end_date = null;
-      advancedSearch.type = null;
-      advancedSearch.status = null;
-      // advancedSearch.is_publish = { title: "Publish", code: 1 };
+    const statusList = {
+      1: "อยู่ระหว่างการตรวจสอบ",
+      2: "ส่งต่อเรื่องให้ผู้รับผิดชอบ",
+      3: "รอใบสั่งจ้าง",
+      4: "อยู่ระหว่างดำเนินการซ่อมแซม",
+      5: "ดำเนินการแล้วเสร็จ",
     };
 
     const selectOptions = ref({
-      hosts: [],
-      countries: [],
-      types: [
-        { title: "ในประเทศ (Domestic Type)", code: 1 },
-        { title: "ต่างประเทศ (Foreign Type)", code: 2 },
-      ],
-      statuses: [
-        { title: "Active", code: "active" },
-        { title: "InActive", code: "inActive" },
-        { title: "Warning", code: "warning" },
-      ],
-      // is_publish: [
-      //   { title: "Publish", code: 1 },
-      //   { title: "Non-Publish", code: 0 },
-      // ],
       perPage: [
         { title: "1", code: 1 },
         { title: "2", code: 2 },
@@ -165,125 +192,33 @@ export default {
         { title: "50", code: 50 },
       ],
       orderBy: [
-        { title: "องค์กรคู่สัญญา/Partner", code: "partner" },
-        { title: "หน่วยงาน/Host", code: "host.name" },
-        { title: "ประเภทความร่วมมือ/Mou Type", code: "type" },
-        { title: "ประเทศคู่สัญญา/Country", code: "country.ct_nameTHA" },
-        { title: "สถานะความร่วมมือ/Status", code: "status" },
-        { title: "วันเริ่มสัญญา/Start Date", code: "start_date" },
-        { title: "วันสิ้นสุดสัญญา/End Date", code: "end_date" },
-        // { title: "ชื่อความร่วมมือ/MOU Name", code: "name" },
+        { title: "วันที่แจ้ง", code: "fix_date" },
+        { title: "หัวข่้อแจ้งซ่อม", code: "title" },
       ],
       order: [
         { title: "ASC", code: "asc" },
         { title: "DESC", code: "desc" },
       ],
-      years: [],
+      statuses: [
+        { title: "อยู่ระหว่างการตรวจสอบ", code: 1 },
+        { title: "ส่งต่อเรื่องให้ผู้รับผิดชอบ", code: 2 },
+        { title: "รอใบสั่งจ้าง", code: 3 },
+        { title: "อยู่ระหว่างดำเนินการซ่อมแซม", code: 4 },
+        { title: "ดำเนินการแล้วเสร็จ", code: 5 },
+      ],
     });
-
-    const yearSelect = dayjs().locale("th").format("BBBB");
-    selectOptions.value.years.push({
-      title: String(yearSelect),
-      code: String(yearSelect),
-    });
-    for (let i = 1; i <= 4; i++) {
-      selectOptions.value.years.push({
-        title: String(parseInt(yearSelect) - i),
-        code: String(parseInt(yearSelect) - i),
-      });
-    }
-
-    store
-      .dispatch("fix/fetchHosts")
-      .then((response) => {
-        const { data } = response.data;
-        selectOptions.value.hosts = data.map((d) => {
-          return {
-            code: d.id,
-            title: d.name,
-          };
-        });
-      })
-      .catch((error) => {
-        console.log(error);
-        toast({
-          component: ToastificationContent,
-          props: {
-            title: "Error fetching Host's list",
-            icon: "AlertTriangleIcon",
-            variant: "danger",
-          },
-        });
-      });
-
-    store
-      .dispatch("fix/fetchCountries")
-      .then((response) => {
-        const { data } = response.data;
-        selectOptions.value.countries = data.map((d) => {
-          return {
-            code: d.ct_code,
-            title: d.ct_nameTHA + " (" + d.ct_nameENG + ")",
-          };
-        });
-      })
-      .catch((error) => {
-        console.log(error);
-        toast({
-          component: ToastificationContent,
-          props: {
-            title: "Error fetching Country's list",
-            icon: "AlertTriangleIcon",
-            variant: "danger",
-          },
-        });
-      });
 
     const fetchItems = () => {
-      let search = { ...advancedSearch };
-      if (search.host_id) {
-        if (search.host_id.hasOwnProperty("code")) {
-          search.host_id = search.host_id.code;
-        }
-      }
-      if (search.country_code) {
-        if (search.country_code.hasOwnProperty("code")) {
-          search.country_code = search.country_code.code;
-        }
-      }
-      if (search.type) {
-        if (search.type.hasOwnProperty("code")) {
-          search.type = search.type.code;
-        }
-      }
-      if (search.status) {
-        if (search.status.hasOwnProperty("code")) {
-          search.status = search.status.code;
-        }
-      }
-
-      if (search.year) {
-        if (search.year.hasOwnProperty("code")) {
-          search.year = search.year.code;
-        }
-      }
-      // if (search.is_publish) {
-      //   if (search.is_publish.hasOwnProperty("code")) {
-      //     search.is_publish = search.is_publish.code;
-      //   }
-      // }
-
       isOverLay.value = true;
       store
-        .dispatch("fix/fetchFixes", {
+        .dispatch("fix-list/fetchFixes", {
           perPage: perPage.value.code,
           currentPage: currentPage.value == 0 ? undefined : currentPage.value,
           orderBy: orderBy.value.code,
           order: order.value.code,
-          ...search,
+          user_id: isAdmin ? undefined : getUserData().userID,
         })
         .then((response) => {
-          // const { data, totalData, totalPage } = response.data;
           items.value = response.data.data;
           totalPage.value = response.data.totalPage;
           totalItems.value = response.data.totalData;
@@ -304,27 +239,6 @@ export default {
     };
     fetchItems();
 
-    watch(
-      () => advancedSearch.type,
-      (value) => {
-        if (value) {
-          if (value.code == 1) {
-            advancedSearch.country_code = { title: "ไทย", code: "THA" };
-          } else {
-            advancedSearch.country_code = {
-              title: "-- All Country --",
-              code: null,
-            };
-          }
-        } else {
-          advancedSearch.country_code = {
-            title: "-- All Country --",
-            code: null,
-          };
-        }
-      }
-    );
-
     watchEffect(() => {
       fetchItems();
     });
@@ -333,231 +247,93 @@ export default {
       currentPage.value = page;
     };
 
-    const displayDateInput = (date) => {
-      return date ? dayjs(date).locale("th").format("DD/MM/BBBB") : date;
+    //
+    const onConfirmDelete = (id) => {
+      Swal.fire({
+        title: "Are you sure?",
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, delete it!",
+        customClass: {
+          confirmButton: "btn btn-primary",
+          cancelButton: "btn btn-outline-danger ml-1",
+        },
+        buttonsStyling: false,
+      }).then((result) => {
+        if (result.isConfirmed) {
+          onDelete(id);
+          Swal.fire({
+            icon: "success",
+            title: "Deleted!",
+            text: "Your file has been deleted.",
+            customClass: {
+              confirmButton: "btn btn-success",
+            },
+          });
+        }
+      });
+    };
+
+    const onDelete = (id) => {
+      store
+        .dispatch("fix-list/deleteFix", { id: id })
+        .then((response) => {
+          if (response.data.message == "success") {
+            toast({
+              component: ToastificationContent,
+              props: {
+                title: "Success : Deleted Fix",
+                icon: "CheckIcon",
+                variant: "success",
+              },
+            });
+            fetchItems();
+          } else {
+            console.log("error");
+          }
+        })
+        .catch((error) => {
+          let textErrors = "";
+          Object.values(error.response.data.errors).forEach((textError) => {
+            textErrors = textErrors + textError + "<br>";
+          });
+          errorToast(textErrors);
+        });
     };
 
     return {
       items,
-      totalItems,
+      item,
       isOverLay,
-      selectOptions,
-      advancedSearch,
-      resetAdvancedSearch,
-      order,
-      orderBy,
       perPage,
       currentPage,
       totalPage,
+      totalItems,
+      orderBy,
+      order,
+      selectOptions,
       onChangePage,
-      dayjs,
+      visibleFields,
+      onConfirmDelete,
+      simpleRules,
+      isOverLay,
       isAdmin,
-      isStaff,
-      displayDateInput,
-      // formatYear
+      dayjs,
+      statusList,
     };
   },
 };
 </script>
 
-<style lang="scss">
-.fix-item-card {
-  border: 10px solid;
-  cursor: pointer;
-}
-.fix-item-active {
-  border-color: #99cc33;
-}
-.fix-item-warning {
-  border-color: #ffcc00;
-}
-.fix-item-inActive {
-  border-color: #ff0000;
-}
-
-.form-control[readonly] {
-  background-color: #fff;
-}
-.form-control:disabled {
-  background-color: #fff;
-}
-label {
-  font-size: 1rem;
-}
-</style>
+<style></style>
 
 <template>
   <div class="container-lg">
-    <!-- Search -->
-    <b-card>
-      <div class="m-2">
-        <b-row>
-          <b-col>
-            <h4>ค้นหา/Search</h4>
-            <hr />
-          </b-col>
-        </b-row>
-        <b-row>
-          <b-form-group
-            label="ชื่อความร่วมมือ/MOU Name"
-            label-for="name"
-            class="col-md-4"
-          >
-            <b-form-input
-              id="name"
-              v-model="advancedSearch.name"
-              placeholder=""
-            />
-          </b-form-group>
-
-          <b-form-group
-            label="หน่วยงาน/Host Organization"
-            label-for="host_id"
-            class="col-md-4"
-          >
-            <v-select
-              v-model="advancedSearch.host_id"
-              :dir="$store.state.appConfig.isRTL ? 'rtl' : 'ltr'"
-              label="title"
-              :clearable="true"
-              placeholder="-- All Host --"
-              :options="selectOptions.hosts"
-            />
-          </b-form-group>
-
-          <b-form-group
-            label="องค์กรคู่สัญญา/Partner Organization"
-            label-for="partner"
-            class="col-md-4"
-          >
-            <b-form-input
-              id="partner"
-              v-model="advancedSearch.partner"
-              placeholder=""
-            />
-          </b-form-group>
-
-          <b-form-group
-            label="ประเภทความร่วมมือ/Mou Type"
-            label-for="type"
-            class="col-md-4"
-          >
-            <v-select
-              v-model="advancedSearch.type"
-              :dir="$store.state.appConfig.isRTL ? 'rtl' : 'ltr'"
-              label="title"
-              :clearable="true"
-              placeholder="-- All Type --"
-              :options="selectOptions.types"
-            />
-          </b-form-group>
-
-          <b-form-group
-            label="ประเทศคู่สัญญา/Country"
-            label-for="country_code"
-            class="col-md-4"
-          >
-            <v-select
-              v-model="advancedSearch.country_code"
-              :dir="$store.state.appConfig.isRTL ? 'rtl' : 'ltr'"
-              label="title"
-              :clearable="true"
-              placeholder="-- All Country --"
-              :options="selectOptions.countries"
-            />
-          </b-form-group>
-
-          <b-form-group
-            label="สถานะความร่วมมือ/Status"
-            label-for="status"
-            class="col-md-4"
-          >
-            <v-select
-              v-model="advancedSearch.status"
-              :dir="$store.state.appConfig.isRTL ? 'rtl' : 'ltr'"
-              label="title"
-              :clearable="true"
-              placeholder="-- All Status --"
-              :options="selectOptions.statuses"
-            />
-          </b-form-group>
-
-          <b-form-group
-            label="วันเริ่มสัญญา/Start Date"
-            label-for="start_date"
-            class="col-md-4"
-          >
-            <flat-pickr
-              v-model="advancedSearch.start_date"
-              placeholder="Start Date"
-              :config="configDate"
-            />
-          </b-form-group>
-
-          <b-form-group
-            label="วันสิ้นสุดสัญญา/End Date"
-            label-for="end_date"
-            class="col-md-4"
-          >
-            <flat-pickr
-              v-model="advancedSearch.end_date"
-              placeholder="End Date"
-              :config="configDate"
-            />
-
-            <!-- <vc-date-picker
-              v-model="advancedSearch.end_date"
-              locale="th"
-              :masks="{ input: 'DD/MM/YYYY' }"
-            >
-              <template
-                slot="header-title"
-                slot-scope="{ monthLabel, yearLabel }"
-                >{{ monthLabel }}
-                {{ yearLabel | formatYear(buddhistYear) }}</template
-              >
-
-              <template #default="{ inputValue, inputEvents }">
-                <b-form-input
-                  id="end_date"
-                  placeholder="End Date"
-                  :value="displayDateInput(inputValue)"
-                  :readonly="true"
-                  v-on="inputEvents"
-                />
-              </template>
-            </vc-date-picker> -->
-          </b-form-group>
-
-          <b-form-group
-            label="ปีที่เซ็นสัญญา/Year"
-            label-for="year"
-            class="col-md-4"
-          >
-            <v-select
-              v-model="advancedSearch.year"
-              :dir="$store.state.appConfig.isRTL ? 'rtl' : 'ltr'"
-              label="title"
-              :clearable="true"
-              placeholder="-- All Year --"
-              :options="selectOptions.years"
-            />
-          </b-form-group>
-        </b-row>
-
-        <b-row>
-          <b-col>
-            <b-button variant="outline-danger" @click="resetAdvancedSearch()">
-              reset
-            </b-button>
-          </b-col>
-        </b-row>
-      </div>
-    </b-card>
-
-    <b-card no-body style="box-shadow: 0 4px 24px 0 rgb(34 41 47 / 10%)">
+    <b-card no-body>
       <b-overlay :show="isOverLay" opacity="0.3" spinner-variant="primary">
-        <!-- Sort -->
         <div class="m-2">
           <b-row>
             <b-col>
@@ -590,9 +366,12 @@ label {
               </b-form-group>
 
               <b-button
-                v-if="isAdmin || isStaff"
                 variant="outline-success"
-                @click="$router.push({ name: 'fix-add' })"
+                @click="
+                  $router.push({
+                    name: 'fix-add',
+                  })
+                "
                 class="float-right"
               >
                 <feather-icon icon="PlusIcon" />
@@ -600,53 +379,71 @@ label {
               </b-button>
             </b-col>
           </b-row>
-
           <hr />
         </div>
+
         <!-- List -->
         <div class="m-2">
           <b-row>
-            <b-col
-              v-for="(it, key) of items"
-              :key="it.id"
-              class="col-md-4 col-sm-6 col-lg-3"
-            >
-              <b-card
-                :class="'fix-item-card pa-2 fix-item-' + it.status"
-                :img-src="it.partner_logo_file"
-                img-top
-                img-alt="card img"
-                class="position-static"
-                @click="
-                  $router.push({
-                    name: 'fix-view',
-                    params: { id: it.id },
-                  })
-                "
+            <!-- Table -->
+            <b-col cols="12">
+              <b-table
+                striped
+                bordered
+                hover
+                responsive
+                :items="items"
+                :fields="visibleFields"
               >
-                <b-card-text>
-                  <div style="min-height: 80px">
-                    <b-link :to="'view'"
-                      ><h4>{{ it.partner }}</h4></b-link
-                    >
-                  </div>
-                  <hr />
-                  <div style="min-height: 50px">
-                    {{ it.host_name }}
-                  </div>
-                  <span style="font-size: 0.9em">
-                    {{
-                      dayjs(it.start_date).locale("th").format("DD/MM/BB") +
-                      " - " +
-                      dayjs(it.end_date).locale("th").format("DD/MM/BB")
-                    }}
-                  </span>
-                  <br />
-                  <span style="font-size: 0.9em">
-                    ({{ it.remain_date }} วัน)
-                  </span>
-                </b-card-text>
-              </b-card>
+                <template #cell(fix_date)="row">
+                  {{ dayjs(row.item.fix_date).locale("th").format("DD/MM/BB") }}
+                </template>
+                <template #cell(status)="row">
+                  {{ statusList[row.item.status] }}
+                </template>
+                <template #cell(action)="row">
+                  <b-button
+                    variant="outline-success"
+                    alt="ดูข้อมูล"
+                    title="ดูข้อมูล"
+                    class="btn-icon btn-sm"
+                    @click="
+                      $router.push({
+                        name: 'fix-view',
+                        params: { id: row.item.id },
+                      })
+                    "
+                  >
+                    <feather-icon icon="EyeIcon" style="margin-bottom: -2px" />
+                  </b-button>
+                  <!-- <b-button
+                    variant="outline-success"
+                    alt="แก้ไข"
+                    title="แก้ไข"
+                    class="btn-icon btn-sm"
+                    @click="
+                      $router.push({
+                        name: 'fix-edit',
+                        params: { id: row.item.id },
+                      })
+                    "
+                  >
+                    <feather-icon icon="EditIcon" style="margin-bottom: -2px" />
+                  </b-button> -->
+                  <!-- <b-button
+                    @click="onConfirmDelete(row.item.id)"
+                    variant="outline-danger"
+                    alt="ลบ"
+                    title="ลบ"
+                    class="btn-icon btn-sm"
+                  >
+                    <feather-icon
+                      icon="TrashIcon"
+                      style="margin-bottom: -2px"
+                    />
+                  </b-button> -->
+                </template>
+              </b-table>
             </b-col>
           </b-row>
 
@@ -657,7 +454,7 @@ label {
                 :total-rows="totalItems"
                 :per-page="perPage.code"
                 align="center"
-                aria-controls="my-fix"
+                aria-controls="my-mou"
                 @change="onChangePage"
               />
             </b-col>

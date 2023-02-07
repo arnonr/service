@@ -28,7 +28,9 @@ import ToastificationContent from "@core/components/toastification/Toastificatio
 
 import { onUnmounted, ref, reactive, watch } from "@vue/composition-api";
 import store from "@/store";
-import mouStoreModule from "../fixStoreModule";
+import fixStoreModule from "../fixStoreModule";
+import dayjs from "dayjs";
+import { getUserData } from "@/auth/utils";
 
 export default {
   components: {
@@ -65,16 +67,16 @@ export default {
     };
   },
   setup() {
-    const MOU_ADD_APP_STORE_MODULE_NAME = "mou-add";
+    const FIX_ADD_APP_STORE_MODULE_NAME = "fix-add";
 
     // Register module
-    if (!store.hasModule(MOU_ADD_APP_STORE_MODULE_NAME))
-      store.registerModule(MOU_ADD_APP_STORE_MODULE_NAME, mouStoreModule);
+    if (!store.hasModule(FIX_ADD_APP_STORE_MODULE_NAME))
+      store.registerModule(FIX_ADD_APP_STORE_MODULE_NAME, fixStoreModule);
 
     // UnRegister on leave
     onUnmounted(() => {
-      if (store.hasModule(MOU_ADD_APP_STORE_MODULE_NAME))
-        store.unregisterModule(MOU_ADD_APP_STORE_MODULE_NAME);
+      if (store.hasModule(FIX_ADD_APP_STORE_MODULE_NAME))
+        store.unregisterModule(FIX_ADD_APP_STORE_MODULE_NAME);
     });
 
     const toast = useToast();
@@ -83,53 +85,42 @@ export default {
 
     const item = reactive({
       id: null,
-      name: "",
-      partner: "",
-      partner_logo_file: null,
-      partner_logo_file_old: null,
-      mou_file_file: null,
-      mou_file_old: null,
-      host_id: { title: null, code: null },
-      country_code: { title: null, code: null },
-      start_date: null,
-      end_date: null,
-      address: "",
-      type: { title: null, code: null },
-      is_publish: { title: "Publish", code: 1 },
-      partner_contact_name: "",
-      partner_contact_phone: "",
-      partner_contact_email: "",
-      host_contact_name: "",
-      host_contact_phone: "",
-      host_contact_email: "",
+      title: "",
+      detail: "",
+      building_id: null,
+      place: "",
+      fix_img_file: null,
+      fix_img_file_old: null,
+      fix_img2_file: null,
+      fix_img2_file_old: null,
+      fix_img3_file: null,
+      fix_img3_file_old: null,
+      name: getUserData().fullName,
+      email: getUserData().email,
+      user_id: getUserData().userID,
+      phone: "",
+      fix_date: null,
+      success_date: null,
+      status: { title: "รอรับเรื่อง", code: 1 },
     });
 
     const selectOptions = ref({
-      hosts: [],
-      countries: [],
-      types: [
-        //   { title: "-- All Types -- ", code: "" },
-        { title: "ในประเทศ", code: 1 },
-        { title: "ต่างประเทศ", code: 2 },
-      ],
+      // hosts: [],
       statuses: [
-        //   { title: "-- All Statuses -- ", code: "" },
-        { title: "Active", code: "active" },
-        { title: "InActive", code: "inActive" },
-        { title: "Warning", code: "warning" },
+        { title: "รอรับเรื่อง", code: 1 },
+        { title: "รับเรื่องและอยู่ระหว่างการตรวจสอบปัญหา", code: 2 },
+        { title: "อยู่ระหว่างการสั่งชิ้นส่วนที่ชำรุดเสียหาย", code: 3 },
+        { title: "อยู่ระหว่างการดำเนินการแก้ไข", code: 4 },
+        { title: "ดำเนินการเสร็จสิ้น", code: 5 },
       ],
-      is_publish: [
-        //   { title: "-- All Publish -- ", code: "" },
-        { title: "Publish", code: 1 },
-        { title: "Non-Publish", code: 0 },
-      ],
+      buildings: [],
     });
 
     store
-      .dispatch("mou-add/fetchHosts")
+      .dispatch("fix-add/fetchBuildings")
       .then((response) => {
         const { data } = response.data;
-        selectOptions.value.hosts = data.map((d) => {
+        selectOptions.value.buildings = data.map((d) => {
           return {
             code: d.id,
             title: d.name,
@@ -141,30 +132,7 @@ export default {
         toast({
           component: ToastificationContent,
           props: {
-            title: "Error fetching Host's list",
-            icon: "AlertTriangleIcon",
-            variant: "danger",
-          },
-        });
-      });
-
-    store
-      .dispatch("mou-add/fetchCountries")
-      .then((response) => {
-        const { data } = response.data;
-        selectOptions.value.countries = data.map((d) => {
-          return {
-            code: d.ct_code,
-            title: d.ct_nameTHA + " (" + d.ct_nameENG + ")",
-          };
-        });
-      })
-      .catch((error) => {
-        console.log(error);
-        toast({
-          component: ToastificationContent,
-          props: {
-            title: "Error fetching Country's list",
+            title: "Error fetching Building's list",
             icon: "AlertTriangleIcon",
             variant: "danger",
           },
@@ -181,35 +149,35 @@ export default {
 
     const onSubmit = (ctx, callback) => {
       overLay.value = true;
-
       let dataSend = {
+        title: item.title,
+        detail: item.detail,
+        building_id: item.building_id.code,
+        place: item.place,
+        fix_img_file: item.fix_img_file,
+        fix_img2_file: item.fix_img2_file,
+        fix_img3_file: item.fix_img3_file,
         name: item.name,
-        partner: item.partner,
-        partner_logo_file: item.partner_logo_file,
-        mou_file: item.mou_file,
-        host_id: item.host_id.code,
-        country_code: item.country_code.code,
-        start_date: item.start_date,
-        end_date: item.end_date,
-        address: item.address,
-        type: item.type.code,
-        is_publish: item.is_publish.code,
-        partner_contact_name: item.partner_contact_name,
-        partner_contact_phone: item.partner_contact_phone,
-        partner_contact_email: item.partner_contact_email,
-        host_contact_name: item.host_contact_name,
-        host_contact_phone: item.host_contact_phone,
-        host_contact_email: item.host_contact_email,
+        email: item.email,
+        phone: item.phone,
+        user_id: getUserData().userID,
+        fix_date:
+          item.fix_date != null ? fix_date : dayjs().format("YYYY-MM-DD"),
+        status: item.status.code,
+        is_publish: 1,
       };
 
+      if (item.success_date != null) {
+        dataSend.success_date = item.success_date;
+      }
+
       store
-        .dispatch("mou-add/addMou", dataSend)
+        .dispatch("fix-add/addFix", dataSend)
         .then((response) => {
           if (response.data.message == "success") {
             localStorage.setItem("added", 1);
-            // console.log()
             router.push({
-              name: "mou-view",
+              name: "fix-view",
               params: { id: response.data.data.id },
             });
           } else {
@@ -228,7 +196,7 @@ export default {
           toast({
             component: ToastificationContent,
             props: {
-              title: "Add MOU Error",
+              title: "Add FIX Error",
               icon: "AlertTriangleIcon",
               variant: "danger",
             },
@@ -236,17 +204,6 @@ export default {
           overLay.value = false;
         });
     };
-
-    watch(
-      () => item.type,
-      (value) => {
-        if (value.code == 1) {
-          item.country_code = { title: "ไทย (Thailand)", code: "THA" };
-        } else {
-          item.country_code = { title: null, code: null };
-        }
-      }
-    );
 
     return {
       item,
@@ -268,11 +225,22 @@ export default {
 }
 label {
   font-size: 1rem;
+  color: #000;
+}
+.text-black {
+  font-size: 1rem;
+  color: #000;
+}
+
+@media only screen and (min-width: 1080px) {
+  .b-row-width {
+    width: 80%;
+  }
 }
 </style>
 
 <template>
-  <b-card class="container-lg">
+  <b-card class="container-lg mt-5">
     <b-overlay
       :show="overLay"
       variant="light"
@@ -283,37 +251,86 @@ label {
     >
       <validation-observer ref="simpleRules">
         <b-form>
-          <b-row>
-            <b-col cols="12" class="text-center">
-              <h2>ADD MOU</h2>
-              <hr />
-            </b-col>
-          </b-row>
-          <b-row>
+          <b-row
+            style="margin-right: auto; margin-left: auto"
+            class="b-row-width"
+          >
             <!-- with prop append -->
-
-            <!-- partner group -->
             <b-col cols="12" class="mt-2">
-              <h3>ข้อมูลคู่สัญญา/Partner Information</h3>
-              <hr />
-            </b-col>
-
-            <b-col cols="12">
               <b-form-group
-                label="องค์กรคู่สัญญา/Partner Organization:"
-                label-for="partner"
-                label-cols-md="4"
+                label="หัวข้อแจ้งซ่อม"
+                label-for="title"
+                label-cols-md="12"
               >
                 <validation-provider
                   #default="{ errors }"
-                  name="Partner"
+                  name="Title"
                   rules="required"
                 >
                   <b-form-input
-                    id="partner"
+                    id="title"
                     placeholder=""
-                    v-model="item.partner"
+                    v-model="item.title"
                     :state="errors.length > 0 ? false : null"
+                  />
+                  <small class="text-danger">{{ errors[0] }}</small>
+                </validation-provider>
+              </b-form-group>
+            </b-col>
+
+            <b-col cols="12" class="mt-1">
+              <b-form-group
+                label="รายละเอียดอุปกรณ์/เครื่องมือ ที่เกิดการชำรุด หรือพบเสียหาย"
+                label-for="detail"
+                label-cols-md="12"
+              >
+                <validation-provider #default="{ errors }" name="Detail">
+                  <b-form-input
+                    id="detail"
+                    placeholder=""
+                    v-model="item.detail"
+                    :state="errors.length > 0 ? false : null"
+                  />
+                  <small class="text-danger">{{ errors[0] }}</small>
+                </validation-provider>
+              </b-form-group>
+            </b-col>
+
+            <b-col cols="12" class="mt-1">
+              <b-form-group
+                label="สถานที่พบความชำรุดเสียหาย"
+                label-for="building_id"
+                label-cols-md="12"
+              >
+                <validation-provider
+                  #default="{ errors }"
+                  name="Building"
+                  rules="required"
+                >
+                  <v-select
+                    input-id="building_id"
+                    label="title"
+                    v-model="item.building_id"
+                    :dir="$store.state.appConfig.isRTL ? 'rtl' : 'ltr'"
+                    :options="selectOptions.buildings"
+                    placeholder=""
+                    :clearable="false"
+                  />
+                  <small class="text-danger">{{ errors[0] }}</small>
+                </validation-provider>
+              </b-form-group>
+            </b-col>
+
+            <b-col cols="12" class="mt-1">
+              <b-form-group label="" label-for="place" label-cols-md="12">
+                <validation-provider #default="{ errors }" name="Place">
+                  <span class="text-black">ระบุสถานที่โดยละเอียด</span>
+                  <b-form-input
+                    id="place"
+                    placeholder=""
+                    v-model="item.place"
+                    :state="errors.length > 0 ? false : null"
+                    style="margin-top: 10px"
                   />
                   <small class="text-danger">{{ errors[0] }}</small>
                 </validation-provider>
@@ -322,18 +339,16 @@ label {
 
             <b-col cols="12">
               <b-form-group
-                label="รูปโลโก้คู่สัญญา/Partner Logo"
-                label-for="partner_logo_file"
-                label-cols-md="4"
+                label=""
+                label-for="fix_img_file"
+                label-cols-md="12"
               >
-                <validation-provider
-                  name="partner_logo_file"
-                  #default="{ errors }"
-                  rules="required"
-                >
+                <span class="text-black">รูปภาพประกอบที่ 1</span>
+                <span class="text-danger font-italic"> (**ถ้ามี**)</span>
+                <validation-provider name="fix_img_file" #default="{ errors }">
                   <b-form-file
-                    id="partner_logo_file"
-                    v-model="item.partner_logo_file"
+                    id="fix_img_file"
+                    v-model="item.fix_img_file"
                     placeholder="Choose a file or drop it here..."
                     drop-placeholder="Drop file here..."
                   />
@@ -345,24 +360,19 @@ label {
 
             <b-col cols="12">
               <b-form-group
-                label="ประเภทความร่วมมือ/MOU Type:"
-                label-for="h-title"
-                label-cols-md="4"
+                label=""
+                label-for="fix_img2_file"
+                label-cols-md="12"
               >
-                <validation-provider
-                  #default="{ errors }"
-                  name="MOU Type"
-                  rules="required"
-                >
-                  <v-select
-                    input-id="type"
-                    label="title"
-                    v-model="item.type"
-                    :dir="$store.state.appConfig.isRTL ? 'rtl' : 'ltr'"
-                    :options="selectOptions.types"
-                    placeholder=""
-                    :clearable="false"
+                <span class="text-black">รูปภาพประกอบที่ 2</span>
+                <validation-provider name="fix_img2_file" #default="{ errors }">
+                  <b-form-file
+                    id="fix_img2_file"
+                    v-model="item.fix_img2_file"
+                    placeholder="Choose a file or drop it here..."
+                    drop-placeholder="Drop file here..."
                   />
+
                   <small class="text-danger">{{ errors[0] }}</small>
                 </validation-provider>
               </b-form-group>
@@ -370,24 +380,19 @@ label {
 
             <b-col cols="12">
               <b-form-group
-                label="ประเทศคู่สัญญา/Partner Country:"
-                label-for="country_code"
-                label-cols-md="4"
+                label=""
+                label-for="fix_img3_file"
+                label-cols-md="12"
               >
-                <validation-provider
-                  #default="{ errors }"
-                  name="Country"
-                  rules="required"
-                >
-                  <v-select
-                    input-id="country_code"
-                    label="title"
-                    v-model="item.country_code"
-                    :dir="$store.state.appConfig.isRTL ? 'rtl' : 'ltr'"
-                    :options="selectOptions.countries"
-                    placeholder=""
-                    :clearable="false"
+                <span class="text-black">รูปภาพประกอบที่ 3</span>
+                <validation-provider name="fix_img3_file" #default="{ errors }">
+                  <b-form-file
+                    id="fix_img3_file"
+                    v-model="item.fix_img3_file"
+                    placeholder="รูปภาพประกอบ 3..."
+                    drop-placeholder="Drop file here..."
                   />
+
                   <small class="text-danger">{{ errors[0] }}</small>
                 </validation-provider>
               </b-form-group>
@@ -395,203 +400,17 @@ label {
 
             <b-col cols="12">
               <b-form-group
-                label="ที่อยู่คู่สัญญา/Address:"
-                label-for="country_code"
-                label-cols-md="4"
-              >
-                <validation-provider #default="{ errors }" name="Address">
-                  <b-form-textarea
-                    id="address"
-                    placeholder=""
-                    v-model="item.address"
-                    :state="errors.length > 0 ? false : null"
-                  />
-                  <small class="text-danger">{{ errors[0] }}</small>
-                </validation-provider>
-              </b-form-group>
-            </b-col>
-
-            <b-col cols="12">
-              <b-form-group
-                label="ชื่อผู้ประสานงาน/Partner Contact Name:"
-                label-for="partner_contact_name"
-                label-cols-md="4"
-              >
-                <validation-provider
-                  #default="{ errors }"
-                  name="Partner Contact Name"
-                  rule="required"
-                >
-                  <b-form-input
-                    id="partner_contact_name"
-                    placeholder=""
-                    v-model="item.partner_contact_name"
-                    :state="errors.length > 0 ? false : null"
-                  />
-                  <small class="text-danger">{{ errors[0] }}</small>
-                </validation-provider>
-              </b-form-group>
-            </b-col>
-
-            <b-col cols="12">
-              <b-form-group
-                label="เบอร์ติดต่อ/Partner Contact Phone:"
-                label-for="partner_contact_phone"
-                label-cols-md="4"
-              >
-                <validation-provider
-                  #default="{ errors }"
-                  name="Partner Contact Phone"
-                >
-                  <b-form-input
-                    id="partner_contact_phone"
-                    placeholder=""
-                    v-model="item.partner_contact_phone"
-                    :state="errors.length > 0 ? false : null"
-                  />
-                  <small class="text-danger">{{ errors[0] }}</small>
-                </validation-provider>
-              </b-form-group>
-            </b-col>
-
-            <b-col cols="12">
-              <b-form-group
-                label="เมล/Partner Contact Email:"
-                label-for="partner_contact_email"
-                label-cols-md="4"
-              >
-                <validation-provider
-                  #default="{ errors }"
-                  name="Partner Contact Email"
-                >
-                  <b-form-input
-                    id="partner_contact_email"
-                    placeholder=""
-                    v-model="item.partner_contact_email"
-                    :state="errors.length > 0 ? false : null"
-                  />
-                  <small class="text-danger">{{ errors[0] }}</small>
-                </validation-provider>
-              </b-form-group>
-            </b-col>
-
-            <!--  -->
-
-            <b-col cols="12" class="mt-2">
-              <h3>ข้อมูลหน่วยงานผู้รับผิดชอบ/Host Information</h3>
-              <hr />
-            </b-col>
-
-            <b-col cols="12">
-              <b-form-group
-                label="หน่วยงาน/Host Organization:"
-                label-for="host_id"
-                label-cols-md="4"
-              >
-                <validation-provider
-                  #default="{ errors }"
-                  name="Host"
-                  rules="required"
-                >
-                  <v-select
-                    input-id="host_id"
-                    label="title"
-                    v-model="item.host_id"
-                    :dir="$store.state.appConfig.isRTL ? 'rtl' : 'ltr'"
-                    :options="selectOptions.hosts"
-                    placeholder=""
-                    :clearable="false"
-                  />
-                  <small class="text-danger">{{ errors[0] }}</small>
-                </validation-provider>
-              </b-form-group>
-            </b-col>
-
-            <b-col cols="12">
-              <b-form-group
-                label="ชื่อผู้ประสานงาน/Host Contact Name:"
-                label-for="host_contact_name"
-                label-cols-md="4"
-              >
-                <validation-provider
-                  #default="{ errors }"
-                  name="Host Contact Name"
-                  rule="required"
-                >
-                  <b-form-input
-                    id="host_contact_name"
-                    placeholder=""
-                    v-model="item.host_contact_name"
-                    :state="errors.length > 0 ? false : null"
-                  />
-                  <small class="text-danger">{{ errors[0] }}</small>
-                </validation-provider>
-              </b-form-group>
-            </b-col>
-
-            <b-col cols="12">
-              <b-form-group
-                label="เบอร์ติดต่อ/Host Contact Phone:"
-                label-for="host_contact_phone"
-                label-cols-md="4"
-              >
-                <validation-provider
-                  #default="{ errors }"
-                  name="Host Contact Phone"
-                  rule="required"
-                >
-                  <b-form-input
-                    id="host_contact_phone"
-                    placeholder=""
-                    v-model="item.host_contact_phone"
-                    :state="errors.length > 0 ? false : null"
-                  />
-                  <small class="text-danger">{{ errors[0] }}</small>
-                </validation-provider>
-              </b-form-group>
-            </b-col>
-
-            <b-col cols="12">
-              <b-form-group
-                label="เมล/Host Contact Email:"
-                label-for="host_contact_email"
-                label-cols-md="4"
-              >
-                <validation-provider
-                  #default="{ errors }"
-                  name="Host Contact Email"
-                  rule="required"
-                >
-                  <b-form-input
-                    id="host_contact_email"
-                    placeholder=""
-                    v-model="item.host_contact_email"
-                    :state="errors.length > 0 ? false : null"
-                  />
-                  <small class="text-danger">{{ errors[0] }}</small>
-                </validation-provider>
-              </b-form-group>
-            </b-col>
-
-            <!--  -->
-            <b-col cols="12" class="mt-2">
-              <h3>ข้อมูล MOU/MOU Information</h3>
-              <hr />
-            </b-col>
-
-            <b-col cols="12">
-              <b-form-group
-                label="ชื่อความร่วมมือ/MOU Name:"
+                label="ชื่อ-นามสกุล ผู้แจ้ง"
                 label-for="name"
-                label-cols-md="4"
+                label-cols-md="12"
               >
                 <validation-provider
                   #default="{ errors }"
                   name="Name"
-                  rules="required"
+                  rule="required"
                 >
                   <b-form-input
-                    id="name"
+                    id="Name"
                     placeholder=""
                     v-model="item.name"
                     :state="errors.length > 0 ? false : null"
@@ -601,92 +420,52 @@ label {
               </b-form-group>
             </b-col>
 
+            <!--  -->
             <b-col cols="12">
               <b-form-group
-                label="วันเริ่มสัญญา/Start Date:"
-                label-for="start_date"
-                label-cols-md="4"
+                label="อีเมล ผู้แจ้ง"
+                label-for="email"
+                label-cols-md="12"
               >
-                <validation-provider #default="{ errors }" name="Start Date">
-                  <flat-pickr
-                    v-model="item.start_date"
-                    placeholder="Start Date"
-                    :config="configDate"
-                  />
-                  <small class="text-danger">{{ errors[0] }}</small>
-                </validation-provider>
-              </b-form-group>
-            </b-col>
-
-            <b-col cols="12">
-              <b-form-group
-                label="วันสิ้นสุดสัญญา/End Date:"
-                label-for="start_date"
-                label-cols-md="4"
-              >
-                <validation-provider #default="{ errors }" name="End Date">
-                  <flat-pickr
-                    v-model="item.end_date"
-                    placeholder="End Date"
-                    :config="configDate"
-                  />
-                  <small class="text-danger">{{ errors[0] }}</small>
-                </validation-provider>
-              </b-form-group>
-            </b-col>
-
-            <b-col cols="12">
-              <b-form-group
-                label="สถานะการเผยแพร่/Publish:"
-                label-for="is_publish"
-                label-cols-md="4"
-              >
-                <validation-provider #default="{ errors }" name="Publish">
-                  <v-select
-                    input-id="is_publish"
-                    label="title"
-                    v-model="item.is_publish"
-                    :dir="$store.state.appConfig.isRTL ? 'rtl' : 'ltr'"
-                    :options="selectOptions.is_publish"
+                <validation-provider #default="{ errors }" name="Email">
+                  <b-form-input
+                    id="Email"
                     placeholder=""
-                    :clearable="false"
+                    v-model="item.email"
+                    :state="errors.length > 0 ? false : null"
                   />
                   <small class="text-danger">{{ errors[0] }}</small>
                 </validation-provider>
               </b-form-group>
             </b-col>
 
+            <!--  -->
             <b-col cols="12">
               <b-form-group
-                label="ไฟล์ MOU/MOU File"
-                label-for="mou_file"
-                label-cols-md="4"
+                label="เบอร์โทรติดต่อ"
+                label-for="phone"
+                label-cols-md="12"
               >
-                <validation-provider
-                  name="mou_file"
-                  #default="{ errors }"
-                  rules="required"
-                >
-                  <b-form-file
-                    id="mou_file"
-                    v-model="item.mou_file"
-                    placeholder="Choose a file or drop it here..."
-                    drop-placeholder="Drop file here..."
+                <validation-provider #default="{ errors }" name="Phone">
+                  <b-form-input
+                    id="Phone"
+                    placeholder=""
+                    v-model="item.phone"
+                    :state="errors.length > 0 ? false : null"
                   />
-
                   <small class="text-danger">{{ errors[0] }}</small>
                 </validation-provider>
               </b-form-group>
             </b-col>
 
             <!-- submit and reset -->
-            <b-col offset-md="4">
+            <b-col cols="12 text-center">
               <b-button
                 type="submit"
                 variant="primary"
                 @click.prevent="validationForm"
               >
-                Submit
+                ส่งเรื่องแจ้งซ่อม
               </b-button>
             </b-col>
           </b-row>

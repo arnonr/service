@@ -52,7 +52,7 @@ export default {
       });
     },
 
-    editMou(ctx, dataSend) {
+    editFix(ctx, dataSend) {
       var form_data = new FormData();
 
       for (var key in dataSend) {
@@ -86,19 +86,10 @@ export default {
       });
     },
 
-    fetchHosts(ctx, queryParams) {
+    fetchBuildings(ctx, queryParams) {
       return new Promise((resolve, reject) => {
         axios
-          .get("/host", { params: queryParams })
-          .then((response) => resolve(response))
-          .catch((error) => reject(error));
-      });
-    },
-
-    fetchCountries(ctx, queryParams) {
-      return new Promise((resolve, reject) => {
-        axios
-          .get("/country", { params: queryParams })
+          .get("/building", { params: queryParams })
           .then((response) => resolve(response))
           .catch((error) => reject(error));
       });

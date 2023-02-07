@@ -5,11 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Host extends Model
+class Building extends Model
 {
 
     use HasFactory;
-    protected $table = 'host';
+    protected $table = 'building';
     protected $primaryKey = 'id';
 
     protected $fillable = [
@@ -23,8 +23,4 @@ class Host extends Model
         'updated_by',
         'deleted_at',
     ];
-
-    // public function project() {
-    //     return $this->belongsTo(Project::class);
-    // }
 }

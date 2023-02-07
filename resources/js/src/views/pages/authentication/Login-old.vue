@@ -11,7 +11,7 @@
               alt="Login V2"
               style="width: 50px; margin-right: 10px"
             />
-            MOU
+            SERVICE
           </h2>
         </b-link>
         <!-- /Brand logo-->
@@ -30,7 +30,7 @@
         <b-col lg="4" class="d-flex align-items-center auth-bg px-2 p-lg-5">
           <b-col sm="8" md="6" lg="12" class="px-xl-2 mx-auto">
             <b-card-title class="mb-1 font-weight-bold" title-tag="h2">
-              MOU
+              SERVICE
             </b-card-title>
             <b-card-text class="mb-2">
               กรุณาเข้าใช้งานด้วย ICIT Account

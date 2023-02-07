@@ -7,7 +7,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CountryController;
 use App\Http\Controllers\MouController;
-use App\Http\Controllers\HostController;
+use App\Http\Controllers\FixController;
+use App\Http\Controllers\BuildingController;
 use App\Http\Controllers\ActivityController;
 
 /*
@@ -44,6 +45,15 @@ Route::group(['prefix' => 'user'], function () {
     Route::delete('/{id}', [UserController::class, 'delete']);
 });
 
+Route::group(['prefix' => 'fix'], function () {
+    Route::get('/{id}', [FixController::class, 'get']);
+    Route::get('/', [FixController::class, 'getAll']);
+    Route::post('/', [FixController::class, 'add']);
+    Route::put('/{id}', [FixController::class, 'edit']);
+    Route::delete('/{id}', [FixController::class, 'delete']);
+});
+
+
 Route::group(['prefix' => 'activity'], function () {
     Route::get('/{id}', [ActivityController::class, 'get']);
     Route::get('/', [ActivityController::class, 'getAll']);
@@ -68,12 +78,12 @@ Route::group(['prefix' => 'country'], function () {
     Route::delete('/{id}', [CountryController::class, 'delete']);
 });
 
-Route::group(['prefix' => 'host'], function () {
-    Route::get('/{id}', [HostController::class, 'get']);
-    Route::get('/', [HostController::class, 'getAll']);
-    Route::post('/', [HostController::class, 'add']);
-    Route::put('/{id}', [HostController::class, 'edit']);
-    Route::delete('/{id}', [HostController::class, 'delete']);
+Route::group(['prefix' => 'building'], function () {
+    Route::get('/{id}', [BuildingController::class, 'get']);
+    Route::get('/', [BuildingController::class, 'getAll']);
+    Route::post('/', [BuildingController::class, 'add']);
+    Route::put('/{id}', [BuildingController::class, 'edit']);
+    Route::delete('/{id}', [BuildingController::class, 'delete']);
 });
 
 // Route::middleware('auth:api')->get('/user', function (Request $request) {

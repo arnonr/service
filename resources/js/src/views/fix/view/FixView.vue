@@ -183,25 +183,17 @@ export default {
 
     const item = ref({
       id: null,
+      title: "",
+      detail: "",
+      place: "",
+      fix_img_file: "",
       name: "",
-      partner: "",
-      partner_logo_file: null,
-      partner_logo_file_old: null,
-      mou_file_file: null,
-      mou_file_old: null,
-      host_id: { title: null, code: null },
-      country_code: { title: null, code: null },
-      start_date: null,
-      end_date: null,
-      address: "",
-      type: { title: null, code: null },
-      is_publish: { title: "Publish", code: 1 },
-      partner_contact_name: "",
-      partner_contact_phone: "",
-      partner_contact_email: "",
-      host_contact_name: "",
-      host_contact_phone: "",
-      host_contact_email: "",
+      email: "",
+      phone: "",
+      user_id: "",
+      fix_date: "",
+      success_date: "",
+      status: "",
     });
 
     store
@@ -281,7 +273,7 @@ export default {
         .dispatch("fix-view/deleteFix", { id: id })
         .then((response) => {
           if (response.data.message == "success") {
-            router.push({ name: "lists" });
+            router.push({ name: "fix-list" });
           } else {
             console.log("error");
           }
@@ -494,7 +486,6 @@ export default {
 </script>
 
 <style lang="scss">
-
 .label {
   font-weight: bold;
 }
@@ -529,6 +520,31 @@ h6,
 .h6 {
   color: #000;
 }
+
+@media only screen and (min-width: 1080px) {
+  .fix-img {
+    max-width: 30% !important;
+  }
+}
+
+@media only screen and (max-width: 1079px) {
+  .fix-img {
+    max-width: 80% !important;
+  }
+}
+
+@media only screen and (max-width: 600px) {
+  .fix-img {
+    max-width: 100% !important;
+  }
+}
+
+
+// @media only screen and (max-width: 1079px) {
+//   .fix-img {
+//     max-width: "100%";
+//   }
+// }
 </style>
 
 <template>
@@ -549,117 +565,57 @@ h6,
       </b-row>
       <b-row>
         <b-col class="text-center mt-2 mb-3">
-          <img :src="item.partner_logo_file" alt="" style="max-width: 100%" />
+          <img :src="item.fix_img_file" alt="" class="fix-img"  />
         </b-col>
       </b-row>
       <b-row>
         <b-col class="pt-1 pb-1 mb-2" style="background-color: #eee">
-          <h4>ข้อมูลคู่สัญญา/Partner Information</h4>
+          <h4>ข้อมูลแจ้งซ่อม</h4>
         </b-col>
       </b-row>
 
       <b-row>
         <b-col>
-          <span class="label">องค์กรคู่สัญญา/Partner Organization : </span>
-          <span class="text-data font-italic">{{ item.name }}</span>
+          <span class="label">หัวข้อแจ้งซ่อม : </span>
+          <span class="text-data font-italic">{{ item.title }}</span>
           <hr />
-          <span class="label">ประเภทความร่วมมือ/MOU Type : </span>
-          <span class="text-data font-italic">{{ item.type_name }}</span>
-          <hr />
-          <span class="label">ประเทศคู่สัญญา/Partner Country : </span>
-          <span class="text-data font-italic">{{ item.country_name }}</span>
-          <hr />
-          <span class="label">ที่อยู่คู่สัญญา/Address : </span>
-          <span class="text-data font-italic">{{ item.address }}</span>
-          <hr />
-          <span class="label">ชื่อผู้ประสานงาน/Partner Contact Name : </span>
-          <span class="text-data font-italic">
-            {{ item.partner_contact_name }}</span
-          >
-          <hr />
-          <span class="label">เบอร์ติดต่อ/Partner Contact Phone : </span>
+          <span class="label">วันที่แจ้ง : </span>
           <span class="text-data font-italic">{{
-            item.partner_contact_phone
+            dayjs(item.fix_date).locale("th").format("DD/MM/BBBB")
           }}</span>
           <hr />
-          <span class="label">เมล/Partner Contact Email : </span>
+          <span class="label">วันที่ดำเนินการเสร็จ : </span>
           <span class="text-data font-italic">{{
-            item.partner_contact_email
-          }}</span>
-        </b-col>
-      </b-row>
-      <!--  -->
-      <b-row>
-        <b-col class="pt-1 pb-1 mb-2 mt-4" style="background-color: #eee">
-          <h4>ข้อมูลหน่วยงานผู้รับผิดชอบ/Host Information</h4>
-        </b-col>
-      </b-row>
-
-      <b-row>
-        <b-col>
-          <span class="label">หน่วยงาน/Host Organization : </span>
-          <span class="text-data font-italic">{{ item.host_name }}</span>
-          <hr />
-          <span class="label">ชื่อผู้ประสานงาน/Host Contact Name : </span>
-          <span class="text-data font-italic">{{
-            item.host_contact_name
+            item.success_date
+              ? dayjs(item.success_date).locale("th").format("DD/MM/BBBB")
+              : "-"
           }}</span>
           <hr />
-          <span class="label">เบอร์ผู้ประสานงาน/Host Contact Phone : </span>
-          <span class="text-data font-italic">{{
-            item.host_contact_phone
-          }}</span>
-          <hr />
-          <span class="label">เมลผู้ประสานงาน/Host Contact Email : </span>
-          <span class="text-data font-italic">{{
-            item.host_contact_email
-          }}</span>
-        </b-col>
-      </b-row>
-
-      <!--  -->
-      <b-row>
-        <b-col class="pt-1 pb-1 mb-2 mt-4" style="background-color: #eee">
-          <h4>ข้อมูล MOU/MOU Information</h4>
-        </b-col>
-      </b-row>
-
-      <b-row>
-        <b-col>
-          <span class="label">ชื่อความร่วมมือ/MOU Name : </span>
-          <span class="text-data font-italic">{{ item.name }}</span>
-          <hr />
-          <span class="label">ไฟล์ MOU/File : </span>
-          <span class="text-data font-italic">
-            <b-button
-              v-if="showBtnAdmin"
-              variant="outline-success"
-              alt="เปิดไฟล์แนบ"
-              title="เปิดไฟล์แนบ"
-              class="btn-icon btn-sm"
-              style="margin-bottom: 2px"
-              :href="item.mou_file"
-              target="_blank"
-            >
-              <feather-icon icon="FileIcon" style="margin-bottom: -2px" />
-            </b-button>
+          <span class="label"
+            >รายละเอียดอุปกรณ์/เครื่องมือ ที่เกิดการชำรุด หรือพบเสียหาย :
           </span>
+          <span class="text-data font-italic">{{ item.detail }}</span>
           <hr />
-          <span class="label">วันเริ่มสัญญา/Start Date: </span>
-          <span class="text-data">{{
-            dayjs(item.start_date).locale("th").format("DD/MM/BBBB")
-          }}</span>
+          <span class="label">สถานที่ที่พบความชำรุดเสียหาย : </span>
+          <span class="text-data font-italic">{{ item.place }}</span>
           <hr />
-          <span class="label">วันสิ้นสุดสัญญา/End Date: </span>
-          <span class="text-data">{{
-            dayjs(item.end_date).locale("th").format("DD/MM/BBBB")
-          }}</span>
+          <span class="label">สถานะการซ่อม : </span>
+          <span class="text-data font-italic">{{ item.place }}</span>
+          <hr />
+          <span class="label">ชื่อ-นามสกุล ผู้แจ้ง : </span>
+          <span class="text-data font-italic">{{ item.name }}</span>
+          <hr />
+          <span class="label">อีเมล ผู้แจ้ง : </span>
+          <span class="text-data font-italic"> {{ item.email }}</span>
+          <hr />
+          <span class="label">เบอร์โทรติดต่อ : </span>
+          <span class="text-data font-italic">{{ item.phone }}</span>
         </b-col>
       </b-row>
 
       <b-row>
         <b-col class="pt-1 pb-1 mb-2 mt-4" style="background-color: #eee">
-          <h4>ข้อมูลกิจกรรมภายใต้ MOU</h4>
+          <h4>ข้อมูลการดำเนินการ</h4>
         </b-col>
       </b-row>
 
