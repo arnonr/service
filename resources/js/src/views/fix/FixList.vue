@@ -92,7 +92,7 @@ export default {
     const isOverLay = ref(false);
     const simpleRules = ref();
 
-    const perPage = ref({ title: "10", code: 10 });
+    const perPage = ref({ title: "20", code: 20 });
     const currentPage = ref(1);
     const totalPage = ref(1);
     const totalItems = ref(0);
@@ -100,7 +100,7 @@ export default {
       title: "วันที่แจ้ง",
       code: "fix_date",
     });
-    const order = ref({ title: "DESC", code: "desc" });
+    const order = ref({ title: "มาก -> น้อย", code: "desc" });
 
     const fields = reactive([
       {
@@ -185,19 +185,17 @@ export default {
 
     const selectOptions = ref({
       perPage: [
-        { title: "1", code: 1 },
-        { title: "2", code: 2 },
-        { title: "10", code: 10 },
         { title: "20", code: 20 },
-        { title: "50", code: 50 },
+        { title: "40", code: 40 },
+        { title: "60", code: 60 },
       ],
       orderBy: [
         { title: "วันที่แจ้ง", code: "fix_date" },
         { title: "หัวข่้อแจ้งซ่อม", code: "title" },
       ],
       order: [
-        { title: "ASC", code: "asc" },
-        { title: "DESC", code: "desc" },
+        { title: "น้อย -> มาก", code: "asc" },
+        { title: "มาก -> น้อย", code: "desc" },
       ],
       statuses: [
         { title: "อยู่ระหว่างการตรวจสอบ", code: 1 },
@@ -338,6 +336,7 @@ export default {
           <b-row>
             <b-col>
               <b-form-group class="float-left col-lg-2">
+                <span>จำนวนรายการ/page</span>
                 <v-select
                   v-model="perPage"
                   :dir="$store.state.appConfig.isRTL ? 'rtl' : 'ltr'"
@@ -347,6 +346,7 @@ export default {
                 />
               </b-form-group>
               <b-form-group class="float-left col-lg-4">
+                <span>ลักษณะการแสดงผล</span>
                 <v-select
                   v-model="orderBy"
                   :dir="$store.state.appConfig.isRTL ? 'rtl' : 'ltr'"
@@ -356,6 +356,7 @@ export default {
                 />
               </b-form-group>
               <b-form-group class="float-left col-lg-2">
+                <span>ลำดับการแสดงผล</span>
                 <v-select
                   v-model="order"
                   :dir="$store.state.appConfig.isRTL ? 'rtl' : 'ltr'"
