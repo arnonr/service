@@ -222,7 +222,6 @@ class FixController extends Controller
             'title as required',
             'place as required',
             'name as required',
-            'user_id as required',
             'fix_date as required',
             'is_publish as required',
         ]);
@@ -269,7 +268,6 @@ class FixController extends Controller
         $data->name = $request->name;
         $data->email = $request->email;
         $data->phone = $request->phone;
-        $data->user_id = $request->user_id;
         $data->fix_date = $request->fix_date;
         $data->success_date = $request->success_date;
         $data->status = $request->status;
