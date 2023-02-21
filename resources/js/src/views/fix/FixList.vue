@@ -15,8 +15,12 @@ import {
   BCardText,
   BTable,
   BForm,
+  BBadge,
 } from "bootstrap-vue";
 import vSelect from "vue-select";
+import flatPickr from "vue-flatpickr-component";
+import "flatpickr/dist/flatpickr.css";
+import { Thai } from "flatpickr/dist/l10n/th.js";
 
 import dayjs from "dayjs";
 import "dayjs/locale/th";
@@ -62,6 +66,21 @@ export default {
     ValidationProvider,
     ValidationObserver,
     required,
+    BBadge,
+    flatPickr,
+  },
+  data() {
+    return {
+      configDate: {
+        mode: "single",
+        altInput: true,
+        altFormat: "d/m/Y",
+        dateFormat: "Y-m-d",
+        locale: Thai,
+        disableMobile: "true",
+      },
+      buddhistYear: true,
+    };
   },
   setup() {
     const FIX_APP_STORE_MODULE_NAME = "fix-list";
@@ -102,6 +121,29 @@ export default {
     });
     const order = ref({ title: "มาก -> น้อย", code: "desc" });
 
+    const advancedSearch = reactive({
+      title: "",
+      building_id: null,
+      place: null,
+      name: "",
+      email: "",
+      phone: "",
+      fix_date: null,
+      success_date: null,
+      status: null,
+    });
+
+    const resetAdvancedSearch = () => {
+      advancedSearch.title = "";
+      advancedSearch.building_id = null;
+      advancedSearch.place = null;
+      advancedSearch.name = "";
+      advancedSearch.email = "";
+      advancedSearch.phone = "";
+      advancedSearch.fix_date = null;
+      (advancedSearch.success_date = null), (advancedSearch.status = null);
+    };
+
     const fields = reactive([
       {
         key: "id",
@@ -111,6 +153,14 @@ export default {
       {
         key: "title",
         label: "หัวข้อแจ้งซ่อม",
+        sortable: true,
+        visible: true,
+        // class: "text-center",
+        tdClass: "mw-3-5",
+      },
+      {
+        key: "building_name",
+        label: "อาคาร",
         sortable: true,
         visible: true,
         class: "text-center",
@@ -149,6 +199,14 @@ export default {
         tdClass: "mw-3-5",
       },
       {
+        key: "success_date",
+        label: "ระยะเวลาดำเนินการ",
+        sortable: true,
+        visible: true,
+        class: "text-center",
+        tdClass: "mw-3-5",
+      },
+      {
         key: "email",
         label: "เมล",
         sortable: true,
@@ -175,14 +233,6 @@ export default {
       name: "",
     });
 
-    const statusList = {
-      1: "อยู่ระหว่างการตรวจสอบ",
-      2: "ส่งต่อเรื่องให้ผู้รับผิดชอบ",
-      3: "รอใบสั่งจ้าง",
-      4: "อยู่ระหว่างดำเนินการซ่อมแซม",
-      5: "ดำเนินการแล้วเสร็จ",
-    };
-
     const selectOptions = ref({
       perPage: [
         { title: "20", code: 20 },
@@ -190,23 +240,80 @@ export default {
         { title: "60", code: 60 },
       ],
       orderBy: [
+        { title: "หัวข้อแจ้งซ่อม", code: "title" },
+        { title: "อาคาร", code: "building_id" },
         { title: "วันที่แจ้ง", code: "fix_date" },
-        { title: "หัวข่้อแจ้งซ่อม", code: "title" },
+        { title: "ผู้แจ้ง", code: "name" },
+        { title: "สถานะ", code: "status_id" },
       ],
       order: [
         { title: "น้อย -> มาก", code: "asc" },
         { title: "มาก -> น้อย", code: "desc" },
       ],
-      statuses: [
-        { title: "อยู่ระหว่างการตรวจสอบ", code: 1 },
-        { title: "ส่งต่อเรื่องให้ผู้รับผิดชอบ", code: 2 },
-        { title: "รอใบสั่งจ้าง", code: 3 },
-        { title: "อยู่ระหว่างดำเนินการซ่อมแซม", code: 4 },
-        { title: "ดำเนินการแล้วเสร็จ", code: 5 },
-      ],
+      fix_statuses: [],
+      buildings: [],
     });
 
+    store
+      .dispatch("fix-list/fetchFixStatuses")
+      .then((response) => {
+        const { data } = response.data;
+        selectOptions.value.fix_statuses = data.map((d) => {
+          return {
+            code: d.id,
+            title: d.name,
+          };
+        });
+      })
+      .catch((error) => {
+        console.log(error);
+        toast({
+          component: ToastificationContent,
+          props: {
+            title: "Error fetching Status list",
+            icon: "AlertTriangleIcon",
+            variant: "danger",
+          },
+        });
+      });
+
+    store
+      .dispatch("fix-list/fetchBuildings")
+      .then((response) => {
+        const { data } = response.data;
+        selectOptions.value.buildings = data.map((d) => {
+          return {
+            code: d.id,
+            title: d.name,
+          };
+        });
+      })
+      .catch((error) => {
+        console.log(error);
+        toast({
+          component: ToastificationContent,
+          props: {
+            title: "Error fetching Status list",
+            icon: "AlertTriangleIcon",
+            variant: "danger",
+          },
+        });
+      });
+
     const fetchItems = () => {
+      let search = { ...advancedSearch };
+      if (search.status) {
+        if (search.status.hasOwnProperty("code")) {
+          search.status = search.status.code;
+        }
+      }
+
+      if (search.building_id) {
+        if (search.building_id.hasOwnProperty("code")) {
+          search.building_id = search.building_id.code;
+        }
+      }
+
       isOverLay.value = true;
       store
         .dispatch("fix-list/fetchFixes", {
@@ -215,6 +322,7 @@ export default {
           orderBy: orderBy.value.code,
           order: order.value.code,
           user_id: isAdmin ? undefined : getUserData().userID,
+          ...search,
         })
         .then((response) => {
           items.value = response.data.data;
@@ -320,16 +428,118 @@ export default {
       isOverLay,
       isAdmin,
       dayjs,
-      statusList,
+      advancedSearch,
+      resetAdvancedSearch,
+      dayjs,
     };
   },
 };
 </script>
 
-<style></style>
+<style>
+[dir] .form-control:disabled,
+[dir] .form-control[readonly] {
+  background-color: #fff;
+}
+</style>
 
 <template>
   <div class="container-lg">
+    <!-- Search -->
+    <b-card>
+      <div class="m-2">
+        <b-row>
+          <b-col>
+            <h4>ค้นหา/Search</h4>
+            <hr />
+          </b-col>
+        </b-row>
+        <b-row>
+          <b-form-group label="เรื่อง/Title" label-for="title" class="col-md-4">
+            <b-form-input
+              id="title"
+              v-model="advancedSearch.title"
+              placeholder="ชื่อเรื่อง..."
+            />
+          </b-form-group>
+
+          <b-form-group
+            label="อาคาร/Building"
+            label-for="category"
+            class="col-md-4"
+          >
+            <v-select
+              v-model="advancedSearch.building_id"
+              :dir="$store.state.appConfig.isRTL ? 'rtl' : 'ltr'"
+              label="title"
+              :clearable="true"
+              placeholder="-- All Building --"
+              :options="selectOptions.buildings"
+            />
+          </b-form-group>
+
+          <b-form-group
+            label="ชื่อผู้แจ้ง/Name"
+            label-for="name"
+            class="col-md-4"
+          >
+            <b-form-input
+              id="name"
+              v-model="advancedSearch.name"
+              placeholder="ชื่อผู้แจ้ง..."
+            />
+          </b-form-group>
+
+          <b-form-group
+            label="วันที่แจ้ง/Request Date"
+            label-for="fix_date"
+            class="col-md-4"
+          >
+            <flat-pickr
+              v-model="advancedSearch.fix_date"
+              placeholder="วันที่แจ้ง"
+              :config="configDate"
+            />
+          </b-form-group>
+
+          <!-- <b-form-group
+            label="วันที่แก้ไขเสร็จสิ้น/Success Date"
+            label-for="success_date"
+            class="col-md-4"
+          >
+            <flat-pickr
+              v-model="advancedSearch.success_date"
+              placeholder="วันที่แก้ไขเสร็จสิ้น"
+              :config="configDate"
+            />
+          </b-form-group> -->
+
+          <b-form-group
+            label="สถานะ/Status"
+            label-for="status"
+            class="col-md-4"
+          >
+            <v-select
+              v-model="advancedSearch.status"
+              :dir="$store.state.appConfig.isRTL ? 'rtl' : 'ltr'"
+              label="title"
+              :clearable="true"
+              placeholder="-- All Status --"
+              :options="selectOptions.fix_statuses"
+            />
+          </b-form-group>
+        </b-row>
+
+        <b-row>
+          <b-col>
+            <b-button variant="outline-danger" @click="resetAdvancedSearch()">
+              Clear
+            </b-button>
+          </b-col>
+        </b-row>
+      </div>
+    </b-card>
+
     <b-card no-body>
       <b-overlay :show="isOverLay" opacity="0.3" spinner-variant="primary">
         <div class="m-2">
@@ -400,7 +610,17 @@ export default {
                   {{ dayjs(row.item.fix_date).locale("th").format("DD/MM/BB") }}
                 </template>
                 <template #cell(status)="row">
-                  {{ statusList[row.item.status] }}
+                  <b-badge :variant="row.item.status_color">
+                    {{ row.item.status_name }}
+                  </b-badge>
+                </template>
+                <template #cell(success_date)="row">
+                  {{
+                    row.item.success_date == null
+                      ? dayjs().diff(dayjs(row.item.fix_date), "day")
+                      : dayjs().diff(dayjs(row.item.success_date), "day")
+                  }}
+                  วัน
                 </template>
                 <template #cell(action)="row">
                   <b-button

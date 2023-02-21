@@ -8,6 +8,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\CountryController;
 use App\Http\Controllers\MouController;
 use App\Http\Controllers\FixController;
+use App\Http\Controllers\FixStatusController;
 use App\Http\Controllers\BuildingController;
 use App\Http\Controllers\ActivityController;
 
@@ -85,6 +86,15 @@ Route::group(['prefix' => 'building'], function () {
     Route::put('/{id}', [BuildingController::class, 'edit']);
     Route::delete('/{id}', [BuildingController::class, 'delete']);
 });
+
+Route::group(['prefix' => 'fix-status'], function () {
+    Route::get('/{id}', [FixStatusController::class, 'get']);
+    Route::get('/', [FixStatusController::class, 'getAll']);
+    Route::post('/', [FixStatusController::class, 'add']);
+    Route::put('/', [FixStatusController::class, 'edit']);
+    Route::delete('/{id}', [FixStatusController::class, 'delete']);
+});
+
 
 // Route::middleware('auth:api')->get('/user', function (Request $request) {
 //     return $request->user();

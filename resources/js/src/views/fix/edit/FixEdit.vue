@@ -344,7 +344,7 @@ label {
               </b-form-group>
             </b-col>
 
-            <b-col cols="12" class="mt-1">
+            <b-col cols="12">
               <b-form-group
                 label="รายละเอียดอุปกรณ์/เครื่องมือ ที่เกิดการชำรุด หรือพบเสียหาย"
                 label-for="detail"
@@ -362,7 +362,7 @@ label {
               </b-form-group>
             </b-col>
 
-            <b-col cols="12" class="mt-1">
+            <b-col cols="12">
               <b-form-group
                 label="สถานที่พบความชำรุดเสียหาย"
                 label-for="building_id"
@@ -387,7 +387,7 @@ label {
               </b-form-group>
             </b-col>
 
-            <b-col cols="12" class="mt-1">
+            <b-col cols="12">
               <b-form-group label="" label-for="place" label-cols-md="12">
                 <validation-provider #default="{ errors }" name="Place">
                   <span class="text-black">ระบุสถานที่โดยละเอียด</span>
@@ -564,7 +564,7 @@ label {
                 variant="primary"
                 @click.prevent="validationForm"
               >
-                ส่งเรื่องแจ้งซ่อม
+                แก้ไขข้อมูลแจ้งซ่อม
               </b-button>
             </b-col>
           </b-row>

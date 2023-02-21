@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Mou;
 use App\Models\Activity;
+use App\Models\Fix;
 use Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
@@ -24,13 +24,14 @@ class ActivityController extends Controller
         $items = Activity::select(
                 'activity.id as id',
                 'activity.name as name',
-                'activity.detail as detail',
-                'activity.start_date as start_date',
-                'activity.end_date as end_date',
-                DB::raw("(CASE WHEN activity_file = NULL THEN NULL
-                    ELSE CONCAT('".$this->uploadUrl."',activity_file) END) AS activity_file"),
-                'activity.mou_id as mou_id',
+                'activity.remark as remark',
+                'activity.activity_date as activity_date',
+                'activity.status as status',
+                'activity.fix_id as fix_id',
+                'fix_status.name as status_name',
+                'fix_status.color as status_color',
             )
+            ->join('fix_status','activity.status','=','fix_status.id')
             ->where('activity.deleted_at', null);
 
         if ($request->id) {
@@ -41,8 +42,12 @@ class ActivityController extends Controller
             $items->where('activity.name','LIKE',"%".$request->name."%");
         }
 
-        if ($request->mou_id) {
-            $items->where('activity.mou_id',$request->mou_id);
+        if ($request->fix_id) {
+            $items->where('activity.fix_id',$request->fix_id);
+        }
+
+        if ($request->status) {
+            $items->where('activity.status',$request->status);
         }
 
         if ($request->is_publish != null) {
@@ -82,13 +87,14 @@ class ActivityController extends Controller
         $items = Activity::select(
             'activity.id as id',
             'activity.name as name',
-            'activity.start_date as start_date',
-            'activity.end_date as end_date',
-            'activity.detail as detail',
-            DB::raw("(CASE WHEN activity_file = NULL THEN NULL
-                ELSE CONCAT('".$this->uploadUrl."',activity_file) END) AS activity_file"),
-            'activity.mou_id as mou_id',
+            'activity.remark as remark',
+            'activity.activity_date as activity_date',
+            'activity.status as status',
+            'activity.fix_id as fix_id',
+            'fix_status.name as status_name',
+            'fix_status.color as status_color',
         )->where('activity.deleted_at', null)
+        ->join('fix_status','activity.status','=','fix_status.id')
         ->first();
         
         return response()->json([
@@ -100,32 +106,28 @@ class ActivityController extends Controller
     public function add(Request $request)
     {
         $request->validate([
-            'name as required',
-            'mou_id as required',
+            'activity_date as required',
+            'status as required',
+            'fix_id as required',
             'is_publish as required',
         ]);
 
-        $pathActivity = null;
-        if(($request->activity_file != "") && ($request->activity_file != 'null')){
-            $fileNameActivity = 'activity-'.rand(10,100).'-'.$request->activity_file->getClientOriginalName();
-            $pathActivity = '/activity/'.$fileNameActivity;
-            Storage::disk('public')->put($pathActivity, file_get_contents($request->activity_file));
-        }else{
-            return response()->json([
-                'message' => 'error Not File Upload'
-            ], 200);
-        }
-
         $data = new Activity;
         $data->name = $request->name;
-        $data->detail = $request->detail;
-        $data->start_date = $request->start_date;
-        $data->end_date = $request->end_date;
-        $data->activity_file = $pathActivity;
-        $data->mou_id = $request->mou_id;
+        $data->remark = $request->remark;
+        $data->activity_date = $request->activity_date;
+        $data->status = $request->status;
+        $data->fix_id = $request->fix_id;
         $data->is_publish = 1;
         $data->created_by = 'arnonr';
         $data->save();
+
+        $activity_lastest = Activity::where('fix_id',$request->fix_id)->orderBy('activity_date', 'desc')->orderBy('id', 'desc')->first();
+
+        $fix = Fix::where('id',$request->fix_id)->first();
+        $fix->status = $activity_lastest->status;
+        $fix->save();
+
 
         $responseData = [
             'message' => 'success',
@@ -138,33 +140,29 @@ class ActivityController extends Controller
     public function edit($id, Request $request)
     {
         $request->validate([
-            'name as required',
-            'mou_id as required',
+            'id as required',
+            'activity_date as required',
+            'status as required',
+            'fix_id as required',
             'is_publish as required',
         ]);
         
         $data = Activity::where('id',$id)->first();
 
-        // Save File Success
-        $pathActivity = null;
-
-        if(($request->activity_file != "") && ($request->activity_file != 'null')){
-            $fileNameActivity = 'activity-'.rand(10,100).'-'.$request->activity_file->getClientOriginalName();
-            $pathActivity = '/activity/'.$fileNameActivity;
-            Storage::disk('public')->put($pathActivity, file_get_contents($request->activity_file));
-        }else{
-            $pathActivity = $data->activity_file;
-        }
-
         $data->name = $request->name;
-        $data->detail = $request->detail;
-        $data->start_date = $request->start_date;
-        $data->end_date = $request->end_date;
-        $data->activity_file = $pathActivity;
-        $data->mou_id = $request->mou_id;
+        $data->remark = $request->remark;
+        $data->activity_date = $request->activity_date;
+        $data->status = $request->status;
+        $data->fix_id = $request->fix_id;
         $data->is_publish = 1;
-        $data->created_by = 'arnonr';
+        $data->updated_by = 'arnonr';
         $data->save();
+
+        $activity_lastest = Activity::where('fix_id',$request->fix_id)->orderBy('activity_date', 'desc')->orderBy('id', 'desc')->first();
+
+        $fix = Fix::where('id',$request->fix_id)->first();
+        $fix->status = $activity_lastest->status;
+        $fix->save();
 
         $responseData = [
             'message' => 'success',

@@ -18,6 +18,7 @@ import {
   BFormFile,
   BFormInput,
 } from "bootstrap-vue";
+import vSelect from "vue-select";
 import flatPickr from "vue-flatpickr-component";
 import "flatpickr/dist/flatpickr.css";
 import { Thai } from "flatpickr/dist/l10n/th.js";
@@ -64,6 +65,7 @@ export default {
     ValidationObserver,
     flatPickr,
     required,
+    vSelect,
   },
   data() {
     return {
@@ -112,28 +114,23 @@ export default {
 
     const activityFields = [
       {
+        key: "activity_date",
+        label: "วันที่",
+        sortable: true,
+      },
+      {
+        key: "status",
+        label: "สถานะการดำเนินการ",
+        sortable: true,
+      },
+      {
         key: "name",
-        label: "ชื่อกิจกรรม",
+        label: "ผู้ดำเนินการ",
         sortable: true,
       },
       {
-        key: "start_date",
-        label: "วันที่เริ่มกิจกรรม",
-        sortable: true,
-      },
-      {
-        key: "end_date",
-        label: "วันที่สิ้นสุด",
-        sortable: true,
-      },
-      {
-        key: "detail",
-        label: "รายละเอียด",
-        sortable: true,
-      },
-      {
-        key: "activity_file",
-        label: "ไฟล์",
+        key: "remark",
+        label: "หมายเหตุ",
         sortable: true,
       },
     ];
@@ -147,12 +144,10 @@ export default {
     const activityItems = ref([]);
 
     const activityItem = ref({
+      activity_date: "",
+      status: { title: "รับเรื่องและอยู่ระหว่างการตรวจสอบปัญหา", code: 2 },
       name: "",
-      detail: "",
-      start_date: "",
-      end_date: "",
-      activity_file_old: null,
-      activity_file: null,
+      remark: "",
     });
 
     if (localStorage.getItem("added") == 1) {
@@ -193,10 +188,11 @@ export default {
       user_id: "",
       fix_date: "",
       success_date: "",
-      status: "",
+      status: 1,
     });
 
-    store
+    const fetchFix = () => {
+      store
       .dispatch("fix-view/fetchFix", { id: router.currentRoute.params.id })
       .then((response) => {
         const { data } = response.data;
@@ -214,6 +210,10 @@ export default {
           },
         });
       });
+    }
+
+    fetchFix();
+  
 
     const fetchActivities = () => {
       store
@@ -347,19 +347,19 @@ export default {
 
     const handleEditActivityClick = (data) => {
       activityItem.value = data;
-      activityItem.value.activity_file_old = data.activity_file;
-      activityItem.value.activity_file = null;
+      activityItem.value.status = {
+        code:  data.status,
+        title: data.status_name
+      }
       isActivityModal.value = true;
     };
 
     const handleAddActivityClick = () => {
       activityItem.value = {
+        activity_date: "",
+        remark: "",
         name: "",
-        start_date: "",
-        end_date: "",
-        detail: "",
-        activity_file: null,
-        activity_file_old: null,
+        status: { title: "รับเรื่องและอยู่ระหว่างการตรวจสอบปัญหา", code: 2 },
       };
       isActivityModal.value = true;
     };
@@ -387,10 +387,10 @@ export default {
       let dataSend = {
         name: activityItem.value.name,
         detail: activityItem.value.detail,
-        start_date: activityItem.value.start_date,
-        end_date: activityItem.value.end_date,
-        activity_file: activityItem.value.activity_file,
-        mou_id: router.currentRoute.params.id,
+        activity_date: activityItem.value.activity_date,
+        remark: activityItem.value.remark,
+        fix_id: router.currentRoute.params.id,
+        status: activityItem.value.status.code
       };
 
       if (activityItem.value.id == null) {
@@ -398,6 +398,9 @@ export default {
           .dispatch("fix-view/addActivity", dataSend)
           .then(async (response) => {
             if (response.data.message == "success") {
+
+              fetchFix();
+
               fetchActivities();
 
               isActivitySubmit.value = false;
@@ -432,6 +435,7 @@ export default {
           .dispatch("fix-view/editActivity", dataSend)
           .then(async (response) => {
             if (response.data.message == "success") {
+              fetchFix();
               fetchActivities();
 
               isActivitySubmit.value = false;
@@ -461,6 +465,34 @@ export default {
       }
     };
 
+    const selectOptions = ref({
+      fix_statuses: [],
+      buildings: [],
+    });
+
+    store
+      .dispatch("fix-view/fetchFixStatuses")
+      .then((response) => {
+        const { data } = response.data;
+        selectOptions.value.fix_statuses = data.map((d) => {
+          return {
+            code: d.id,
+            title: d.name,
+          };
+        });
+      })
+      .catch((error) => {
+        console.log(error);
+        toast({
+          component: ToastificationContent,
+          props: {
+            title: "Error fetching Status list",
+            icon: "AlertTriangleIcon",
+            variant: "danger",
+          },
+        });
+      });
+
     return {
       item,
       overLay,
@@ -480,6 +512,7 @@ export default {
       simpleRules,
       isAdmin,
       isStaff,
+      selectOptions,
     };
   },
 };
@@ -539,7 +572,6 @@ h6,
   }
 }
 
-
 // @media only screen and (max-width: 1079px) {
 //   .fix-img {
 //     max-width: "100%";
@@ -561,11 +593,6 @@ h6,
         <b-col class="text-center mt-2">
           <h3>FIX Information</h3>
           <hr width="80px;" style="border: solid 2px; border-color: #ffcb05" />
-        </b-col>
-      </b-row>
-      <b-row>
-        <b-col class="text-center mt-2 mb-3">
-          <img :src="item.fix_img_file" alt="" class="fix-img"  />
         </b-col>
       </b-row>
       <b-row>
@@ -596,11 +623,20 @@ h6,
           </span>
           <span class="text-data font-italic">{{ item.detail }}</span>
           <hr />
-          <span class="label">สถานที่ที่พบความชำรุดเสียหาย : </span>
+          <span class="label">สถานที่พบความชำรุดเสียหาย : </span>
+          <span class="text-data font-italic">{{ item.building_name }}</span>
+          <hr />
+          <span class="label">สถานที่โดยละเอียด : </span>
           <span class="text-data font-italic">{{ item.place }}</span>
           <hr />
           <span class="label">สถานะการซ่อม : </span>
-          <span class="text-data font-italic">{{ item.place }}</span>
+          <b-badge
+            :variant="item.status_color"
+            style="font-size: 120%"
+            ><span class="text-data">{{
+              item.status_name
+            }}</span></b-badge
+          >
           <hr />
           <span class="label">ชื่อ-นามสกุล ผู้แจ้ง : </span>
           <span class="text-data font-italic">{{ item.name }}</span>
@@ -610,6 +646,27 @@ h6,
           <hr />
           <span class="label">เบอร์โทรติดต่อ : </span>
           <span class="text-data font-italic">{{ item.phone }}</span>
+          <hr />
+          <span class="label">ระยะเวลาดำเนินการ : </span>
+          <span class="text-data font-italic"
+            >{{
+              item.success_date == null
+                ? dayjs().diff(dayjs(item.fix_date), "day")
+                : dayjs().diff(dayjs(item.success_date), "day")
+            }}
+            วัน</span
+          >
+          <hr />
+          <div class="row">
+            <b-col cols="12">
+              <span class="label">รูปภาพประกอบ</span>
+            </b-col>
+            <b-col class="text-center mt-2 mb-3">
+              <img :src="item.fix_img_file" alt="" class="fix-img mr-1" />
+              <img :src="item.fix_img2_file" alt="" class="fix-img mr-1" />
+              <img :src="item.fix_img3_file" alt="" class="fix-img" />
+            </b-col>
+          </div>
         </b-col>
       </b-row>
 
@@ -638,26 +695,14 @@ h6,
             :fields="activityFields"
             responsive
           >
-            <template #cell(start_date)="data">
-              {{ dayjs(data.start_date).locale("th").format("DD/MM/BBBB") }}
+            <template #cell(activity_date)="data">
+              {{ dayjs(data.value).locale("th").format("DD/MM/BBBB") }}
             </template>
 
-            <template #cell(end_date)="data">
-              {{ dayjs(data.end_date).locale("th").format("DD/MM/BBBB") }}
-            </template>
-
-            <template #cell(activity_file)="data">
-              <b-button
-                variant="outline-primary"
-                alt="เปิดเอกสาร"
-                title="เปิดเอกสาร"
-                class="btn-icon btn-sm"
-                target="_blank"
-                :href="data.value"
-              >
-                <feather-icon icon="FileIcon" style="margin-bottom: -2px" />
-                <span class="d-none d-xl-inline">เปิดไฟล์แนบ</span>
-              </b-button>
+            <template #cell(status)="row">
+              <b-badge :variant="row.item.status_color">
+                {{ row.item.status_name }}
+              </b-badge>
             </template>
 
             <template #cell(action)="row" v-if="isAdmin || isStaff">
@@ -752,15 +797,11 @@ h6,
             <b-form>
               <div class="row">
                 <b-form-group
-                  label="ชื่อกิจกรรม*"
-                  label-for="activityName"
+                  label="ชื่อผู้ดำเนินการ"
+                  label-for="name"
                   class="col-md"
                 >
-                  <validation-provider
-                    #default="{ errors }"
-                    name="name"
-                    rules="required"
-                  >
+                  <validation-provider #default="{ errors }" name="name">
                     <b-form-input
                       id="activityName"
                       placeholder=""
@@ -774,31 +815,14 @@ h6,
 
               <div class="row">
                 <b-form-group
-                  label="วันที่เริ่มกิจกรรม"
-                  label-for="activityStartDate"
+                  label="วันที่ดำเนินการ"
+                  label-for="activityDate"
                   class="col-md"
                 >
                   <validation-provider #default="{ errors }" name="Start Date">
                     <flat-pickr
-                      v-model="activityItem.start_date"
-                      placeholder="Start Date"
-                      :config="configDate"
-                    />
-                    <small class="text-danger">{{ errors[0] }}</small>
-                  </validation-provider>
-                </b-form-group>
-              </div>
-
-              <div class="row">
-                <b-form-group
-                  label="วันที่สิ้นสุดกิจกรรม"
-                  label-for="activityEndDate"
-                  class="col-md"
-                >
-                  <validation-provider #default="{ errors }" name="End Date">
-                    <flat-pickr
-                      v-model="activityItem.end_date"
-                      placeholder="End Date"
+                      v-model="activityItem.activity_date"
+                      placeholder="Activity Date"
                       :config="configDate"
                     />
                     <small class="text-danger">{{ errors[0] }}</small>
@@ -810,13 +834,13 @@ h6,
                 <b-form-group class="col-md">
                   <validation-provider
                     #default="{ errors }"
-                    name="activityDetail"
+                    name="activityRemark"
                   >
-                    <label for="activityDetail">รายละเอียด:</label>
+                    <label for="activityRemark">รายละเอียด:</label>
                     <b-form-textarea
-                      id="activityDetail"
+                      id="activityRemark"
                       placeholder="รายละเอียด"
-                      v-model="activityItem.detail"
+                      v-model="activityItem.remark"
                       :state="errors.length > 0 ? false : null"
                     />
                     <small class="text-danger">{{ errors[0] }}</small>
@@ -826,31 +850,20 @@ h6,
 
               <div class="row">
                 <b-form-group class="col-md">
-                  <validation-provider #default="{ errors }" name="file">
-                    <label for="file">File:</label>
-                    <b-input-group>
-                      <b-input-group-prepend>
-                        <b-button
-                          :variant="`outline-${
-                            activityItem.activity_file_old == null
-                              ? 'dark'
-                              : 'warning'
-                          }`"
-                          target="_blank"
-                          :disabled="activityItem.activity_file_old == null"
-                          :href="activityItem.activity_file_old"
-                        >
-                          <feather-icon icon="FileTextIcon" />
-                          View File
-                        </b-button>
-                      </b-input-group-prepend>
-                      <b-form-file
-                        id="activity-file"
-                        v-model="activityItem.activity_file"
-                        placeholder="Choose a new file or drop it here..."
-                        drop-placeholder="Drop file here..."
-                      />
-                    </b-input-group>
+                  <validation-provider
+                    #default="{ errors }"
+                    name="activityStatus"
+                  >
+                    <label for="activityStatus">สถานะ:</label>
+                    <v-select
+                      input-id="activityItemStatus"
+                      label="title"
+                      v-model="activityItem.status"
+                      :dir="$store.state.appConfig.isRTL ? 'rtl' : 'ltr'"
+                      :options="selectOptions.fix_statuses"
+                      placeholder=""
+                      :clearable="false"
+                    />
                     <small class="text-danger">{{ errors[0] }}</small>
                   </validation-provider>
                 </b-form-group>

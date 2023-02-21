@@ -106,15 +106,33 @@ export default {
 
     const selectOptions = ref({
       // hosts: [],
-      statuses: [
-        { title: "รอรับเรื่อง", code: 1 },
-        { title: "รับเรื่องและอยู่ระหว่างการตรวจสอบปัญหา", code: 2 },
-        { title: "อยู่ระหว่างการสั่งชิ้นส่วนที่ชำรุดเสียหาย", code: 3 },
-        { title: "อยู่ระหว่างการดำเนินการแก้ไข", code: 4 },
-        { title: "ดำเนินการเสร็จสิ้น", code: 5 },
+      fix_statuses: [
       ],
       buildings: [],
     });
+
+    store
+      .dispatch("fix-add/fetchFixStatuses")
+      .then((response) => {
+        const { data } = response.data;
+        selectOptions.value.fix_statuses = data.map((d) => {
+          return {
+            code: d.id,
+            title: d.name,
+          };
+        });
+      })
+      .catch((error) => {
+        console.log(error);
+        toast({
+          component: ToastificationContent,
+          props: {
+            title: "Error fetching Status list",
+            icon: "AlertTriangleIcon",
+            variant: "danger",
+          },
+        });
+      });
 
     store
       .dispatch("fix-add/fetchBuildings")
@@ -278,7 +296,7 @@ label {
               </b-form-group>
             </b-col>
 
-            <b-col cols="12" class="mt-1">
+            <b-col cols="12">
               <b-form-group
                 label="รายละเอียดอุปกรณ์/เครื่องมือ ที่เกิดการชำรุด หรือพบเสียหาย"
                 label-for="detail"
@@ -296,7 +314,7 @@ label {
               </b-form-group>
             </b-col>
 
-            <b-col cols="12" class="mt-1">
+            <b-col cols="12">
               <b-form-group
                 label="สถานที่พบความชำรุดเสียหาย"
                 label-for="building_id"
@@ -321,7 +339,7 @@ label {
               </b-form-group>
             </b-col>
 
-            <b-col cols="12" class="mt-1">
+            <b-col cols="12">
               <b-form-group label="" label-for="place" label-cols-md="12">
                 <validation-provider #default="{ errors }" name="Place">
                   <span class="text-black">ระบุสถานที่โดยละเอียด</span>

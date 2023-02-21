@@ -41,9 +41,13 @@ class FixController extends Controller
             'fix.status as status',
             'fix.building_id as building_id',
             'building.name as building_name',
+            'fix.status as status_id',
+            'fix_status.name as status_name',
+            'fix_status.color as status_color',
             'fix.is_publish as is_publish'
         )
         ->join('building','fix.building_id','=','building.id')
+        ->join('fix_status','fix.status','=','fix_status.id')
         ->where('fix.deleted_at', null);
 
         if ($request->id) {
@@ -67,7 +71,7 @@ class FixController extends Controller
         }
 
         if ($request->building_id) {
-            $items->where('fix.building_id',building_id);
+            $items->where('fix.building_id',$request->building_id);
         }
 
         if (($request->user_id) && ($request->user_id != 'undefined')){
@@ -87,8 +91,8 @@ class FixController extends Controller
             $items->whereDate('fix_date','>=', $fixDate);
         }
 
-        if ($request->end_date) {
-            $successDate = Carbon::createFromFormat('Y-m-d', $request->end_date);
+        if ($request->success_date) {
+            $successDate = Carbon::createFromFormat('Y-m-d', $request->success_date);
             $items->whereDate('success_date','<=', $successDate);
         }
 
@@ -143,13 +147,16 @@ class FixController extends Controller
             'fix.status as status',
             'fix.building_id as building_id',
             'building.name as building_name',
+            'fix.status as status_id',
+            'fix_status.name as status_name',
+            'fix_status.color as status_color',
             'fix.is_publish as is_publish'
         )
         ->where('fix.id', $id)
         ->join('building','fix.building_id','=','building.id')
+        ->join('fix_status','fix.status','=','fix_status.id')
         ->where('fix.deleted_at', null)->first();
 
-        
         return response()->json([
             'message' => 'success',
             'data' => $item,
