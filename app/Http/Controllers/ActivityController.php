@@ -126,6 +126,11 @@ class ActivityController extends Controller
 
         $fix = Fix::where('id',$request->fix_id)->first();
         $fix->status = $activity_lastest->status;
+        if($activity_lastest->status == 5){
+            $fix->success_date = $activity_lastest->activity_date;
+        }else{
+            $fix->success_date = null;
+        }
         $fix->save();
 
 
@@ -162,6 +167,11 @@ class ActivityController extends Controller
 
         $fix = Fix::where('id',$request->fix_id)->first();
         $fix->status = $activity_lastest->status;
+        if($activity_lastest->status == 5){
+            $fix->success_date = $activity_lastest->activity_date;
+        }else{
+            $fix->success_date = null;
+        }
         $fix->save();
 
         $responseData = [
