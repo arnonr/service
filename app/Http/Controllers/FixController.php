@@ -98,6 +98,7 @@ class FixController extends Controller
 
         if($request->orderBy){
             $items = $items->orderBy($request->orderBy, $request->order);
+            $items = $items->orderBy('id', 'desc');
             
         }else{
             $items = $items->orderBy('id', 'desc');
