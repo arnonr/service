@@ -88,12 +88,12 @@ class FixController extends Controller
 
         if ($request->fix_date) {
             $fixDate = Carbon::createFromFormat('Y-m-d', $request->fix_date);
-            $items->whereDate('fix_date','>=', $fixDate);
+            $items->whereDate('fix_date', $fixDate);
         }
 
         if ($request->success_date) {
             $successDate = Carbon::createFromFormat('Y-m-d', $request->success_date);
-            $items->whereDate('success_date','<=', $successDate);
+            $items->whereDate('success_date', $successDate);
         }
 
         if($request->orderBy){
