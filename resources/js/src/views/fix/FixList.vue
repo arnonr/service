@@ -164,7 +164,10 @@ export default {
         sortable: true,
         visible: true,
         class: "text-center",
-        tdClass: "mw-3-5",
+        thStyle: {
+          width: "150px",
+        },
+
       },
       {
         key: "place",
