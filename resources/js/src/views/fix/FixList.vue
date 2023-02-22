@@ -211,7 +211,7 @@ export default {
       },
       {
         key: "email",
-        label: "เมล",
+        label: "อีเมล",
         sortable: true,
         visible: false,
         class: "text-center",

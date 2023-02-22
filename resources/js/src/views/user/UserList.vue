@@ -140,7 +140,7 @@ export default {
       },
       {
         key: "email",
-        label: "เมล",
+        label: "อีเมล",
         sortable: true,
         visible: true,
         class: "text-center",
