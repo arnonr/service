@@ -94,8 +94,11 @@ export default {
     });
 
     const toast = useToast();
+
     const isAdmin = getUserData().type == "admin" ? true : false;
+    const isUser = getUserData().type == "user" ? true : false;
     const isStaff = getUserData().type == "staff" ? true : false;
+
     const overLay = ref(false);
     const isActivityModal = ref(false);
     const isActivitySubmit = ref(false);
@@ -193,27 +196,26 @@ export default {
 
     const fetchFix = () => {
       store
-      .dispatch("fix-view/fetchFix", { id: router.currentRoute.params.id })
-      .then((response) => {
-        const { data } = response.data;
-        //
-        item.value = data;
-      })
-      .catch((error) => {
-        console.log(error);
-        toast({
-          component: ToastificationContent,
-          props: {
-            title: "Error Get FIX Information",
-            icon: "AlertTriangleIcon",
-            variant: "danger",
-          },
+        .dispatch("fix-view/fetchFix", { id: router.currentRoute.params.id })
+        .then((response) => {
+          const { data } = response.data;
+          //
+          item.value = data;
+        })
+        .catch((error) => {
+          console.log(error);
+          toast({
+            component: ToastificationContent,
+            props: {
+              title: "Error Get FIX Information",
+              icon: "AlertTriangleIcon",
+              variant: "danger",
+            },
+          });
         });
-      });
-    }
+    };
 
     fetchFix();
-  
 
     const fetchActivities = () => {
       store
@@ -348,9 +350,9 @@ export default {
     const handleEditActivityClick = (data) => {
       activityItem.value = data;
       activityItem.value.status = {
-        code:  data.status,
-        title: data.status_name
-      }
+        code: data.status,
+        title: data.status_name,
+      };
       isActivityModal.value = true;
     };
 
@@ -358,7 +360,7 @@ export default {
       activityItem.value = {
         activity_date: "",
         remark: "",
-        name: "",
+        name: getUserData().fullName,
         status: { title: "รับเรื่องและอยู่ระหว่างการตรวจสอบปัญหา", code: 2 },
       };
       isActivityModal.value = true;
@@ -390,7 +392,7 @@ export default {
         activity_date: activityItem.value.activity_date,
         remark: activityItem.value.remark,
         fix_id: router.currentRoute.params.id,
-        status: activityItem.value.status.code
+        status: activityItem.value.status.code,
       };
 
       if (activityItem.value.id == null) {
@@ -398,7 +400,6 @@ export default {
           .dispatch("fix-view/addActivity", dataSend)
           .then(async (response) => {
             if (response.data.message == "success") {
-
               fetchFix();
 
               fetchActivities();
@@ -512,6 +513,7 @@ export default {
       simpleRules,
       isAdmin,
       isStaff,
+      isUser,
       selectOptions,
     };
   },
@@ -630,12 +632,8 @@ h6,
           <span class="text-data font-italic">{{ item.place }}</span>
           <hr />
           <span class="label">สถานะการซ่อม : </span>
-          <b-badge
-            :variant="item.status_color"
-            style="font-size: 120%"
-            ><span class="text-data">{{
-              item.status_name
-            }}</span></b-badge
+          <b-badge :variant="item.status_color" style="font-size: 120%"
+            ><span class="text-data">{{ item.status_name }}</span></b-badge
           >
           <hr />
           <span class="label">ชื่อ-นามสกุล ผู้แจ้ง : </span>
@@ -670,13 +668,13 @@ h6,
         </b-col>
       </b-row>
 
-      <b-row>
+      <b-row v-if="isAdmin || isStaff">
         <b-col class="pt-1 pb-1 mb-2 mt-4" style="background-color: #eee">
           <h4>ข้อมูลการดำเนินการ</h4>
         </b-col>
       </b-row>
 
-      <b-row>
+      <b-row v-if="isAdmin || isStaff">
         <b-col class="col-md-12" v-if="isAdmin || isStaff">
           <b-button
             type="button"
@@ -707,7 +705,7 @@ h6,
 
             <template #cell(action)="row" v-if="isAdmin || isStaff">
               <b-button
-                v-if="showBtnAdmin"
+                v-if="isAdmin || isStaff"
                 variant="outline-success"
                 alt="แก้ไข"
                 title="แก้ไข"
@@ -717,7 +715,7 @@ h6,
                 <feather-icon icon="EditIcon" style="margin-bottom: -2px" />
               </b-button>
               <b-button
-                v-if="showBtnAdmin"
+                v-if="isAdmin"
                 @click="handleDeleteActivityClick(row.item.id)"
                 variant="outline-danger"
                 alt="ลบ"

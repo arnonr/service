@@ -15,7 +15,7 @@ export default [
     component: () => import("@/views/fix/add/FixAdd.vue"),
     meta: {
       pageTitle: "แบบฟอร์มแจ้งซ่อม",
-      resource: "StaffUser",
+      resource: "Auth",
       action: "manage",
     },
   },

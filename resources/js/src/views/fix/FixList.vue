@@ -105,6 +105,8 @@ export default {
     };
 
     const isAdmin = getUserData().type == "admin" ? true : false;
+    const isUser = getUserData().type == "user" ? true : false;
+    const isStaff = getUserData().type == "staff" ? true : false;
 
     const items = ref([]);
 
@@ -128,7 +130,9 @@ export default {
       name: "",
       email: "",
       phone: "",
-      fix_date: null,
+      // fix_date: null,
+      fix_start_date: null,
+      fix_end_date: null,
       success_date: null,
       status: null,
     });
@@ -140,7 +144,9 @@ export default {
       advancedSearch.name = "";
       advancedSearch.email = "";
       advancedSearch.phone = "";
-      advancedSearch.fix_date = null;
+      // advancedSearch.fix_date = null;
+      advancedSearch.fix_start_date = null;
+      advancedSearch.fix_end_date = null;
       (advancedSearch.success_date = null), (advancedSearch.status = null);
     };
 
@@ -167,7 +173,6 @@ export default {
         thStyle: {
           width: "150px",
         },
-
       },
       {
         key: "place",
@@ -205,7 +210,7 @@ export default {
         key: "success_date",
         label: "ระยะเวลาดำเนินการ",
         sortable: true,
-        visible: true,
+        visible: isAdmin || isStaff ? true : false,
         class: "text-center",
         tdClass: "mw-3-5",
       },
@@ -324,7 +329,7 @@ export default {
           currentPage: currentPage.value == 0 ? undefined : currentPage.value,
           orderBy: orderBy.value.code,
           order: order.value.code,
-          user_id: isAdmin ? undefined : getUserData().userID,
+          user_id: isAdmin || isStaff ? undefined : getUserData().userID,
           ...search,
         })
         .then((response) => {
@@ -430,6 +435,8 @@ export default {
       simpleRules,
       isOverLay,
       isAdmin,
+      isUser,
+      isStaff,
       dayjs,
       advancedSearch,
       resetAdvancedSearch,
@@ -449,7 +456,7 @@ export default {
 <template>
   <div class="container-lg">
     <!-- Search -->
-    <b-card>
+    <b-card v-if="isAdmin || isStaff">
       <div class="m-2">
         <b-row>
           <b-col>
@@ -495,12 +502,24 @@ export default {
 
           <b-form-group
             label="วันที่แจ้ง/Request Date"
-            label-for="fix_date"
+            label-for="fix_start_date"
             class="col-md-4"
           >
             <flat-pickr
-              v-model="advancedSearch.fix_date"
+              v-model="advancedSearch.fix_start_date"
               placeholder="วันที่แจ้ง"
+              :config="configDate"
+            />
+          </b-form-group>
+
+          <b-form-group
+            label="ถึงวันที่/Request Date"
+            label-for="fix_end_date"
+            class="col-md-4"
+          >
+            <flat-pickr
+              v-model="advancedSearch.fix_end_date"
+              placeholder="ถึงวันที่"
               :config="configDate"
             />
           </b-form-group>
@@ -617,7 +636,7 @@ export default {
                     {{ row.item.status_name }}
                   </b-badge>
                 </template>
-                <template #cell(success_date)="row">
+                <template #cell(success_date)="row" v-if="isAdmin || isStaff">
                   {{
                     row.item.success_date == null
                       ? dayjs().diff(dayjs(row.item.fix_date), "day")
