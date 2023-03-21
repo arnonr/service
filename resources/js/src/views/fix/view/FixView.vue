@@ -742,7 +742,7 @@ h6,
             "
             v-if="isAdmin || isStaff"
           >
-            Edit FIX</b-button
+            Edit Request</b-button
           >
           <b-button
             type="button"
@@ -750,7 +750,7 @@ h6,
             @click="onConfirmDelete(item.id)"
             v-if="isAdmin"
           >
-            Delete FIX</b-button
+            Delete Request</b-button
           >
         </b-col>
       </b-row>
