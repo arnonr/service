@@ -157,7 +157,7 @@ export default {
       toast({
         component: ToastificationContent,
         props: {
-          title: "Added FIX",
+          title: "Added Request",
           icon: "CheckIcon",
           variant: "success",
         },
@@ -170,7 +170,7 @@ export default {
       toast({
         component: ToastificationContent,
         props: {
-          title: "Updated FIX",
+          title: "Updated Request",
           icon: "CheckIcon",
           variant: "success",
         },
@@ -207,7 +207,7 @@ export default {
           toast({
             component: ToastificationContent,
             props: {
-              title: "Error Get FIX Information",
+              title: "Error Get Request Information",
               icon: "AlertTriangleIcon",
               variant: "danger",
             },
@@ -593,7 +593,7 @@ h6,
     >
       <b-row>
         <b-col class="text-center mt-2">
-          <h3>FIX Information</h3>
+          <h3>Request Information</h3>
           <hr width="80px;" style="border: solid 2px; border-color: #ffcb05" />
         </b-col>
       </b-row>
@@ -606,7 +606,7 @@ h6,
       <b-row>
         <b-col>
           <span class="label">หัวข้อแจ้งซ่อม : </span>
-          <span class="text-data font-italic">{{ item.title }}</span>
+          <span class="text-data font-italic">{{ item.topic_name }}</span>
           <hr />
           <span class="label">วันที่แจ้ง : </span>
           <span class="text-data font-italic">{{

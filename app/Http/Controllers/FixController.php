@@ -24,6 +24,7 @@ class FixController extends Controller
         $items = Fix::select(
             'fix.id as id',
             'fix.title as title',
+            'fix.topic_id as topic_id',
             'fix.detail as detail',
             'fix.place as place',
             DB::raw("(CASE WHEN fix_img_file = NULL THEN NULL
@@ -44,10 +45,12 @@ class FixController extends Controller
             'fix.status as status_id',
             'fix_status.name as status_name',
             'fix_status.color as status_color',
+            'topic.name as topic_name',
             'fix.is_publish as is_publish'
         )
         ->join('building','fix.building_id','=','building.id')
         ->join('fix_status','fix.status','=','fix_status.id')
+        ->join('topic','fix.topic_id','=','topic.id')
         ->where('fix.deleted_at', null);
 
         if ($request->id) {
@@ -56,6 +59,10 @@ class FixController extends Controller
 
         if ($request->title) {
             $items->where('fix.title','LIKE',"%".$request->title."%");
+        }
+
+        if ($request->place) {
+            $items->where('fix.place','LIKE',"%".$request->place."%");
         }
 
         if ($request->name) {
@@ -72,6 +79,10 @@ class FixController extends Controller
 
         if ($request->building_id) {
             $items->where('fix.building_id',$request->building_id);
+        }
+
+        if ($request->topic_id) {
+            $items->where('fix.topic_id',$request->topic_id);
         }
 
         if (($request->user_id) && ($request->user_id != 'undefined')){
@@ -141,6 +152,7 @@ class FixController extends Controller
         $item = Fix::select(
             'fix.id as id',
             'fix.title as title',
+            'fix.topic_id as topic_id',
             'fix.detail as detail',
             'fix.place as place',
             DB::raw("(CASE WHEN fix_img_file = NULL THEN NULL
@@ -161,11 +173,13 @@ class FixController extends Controller
             'fix.status as status_id',
             'fix_status.name as status_name',
             'fix_status.color as status_color',
+            'topic.name as topic_name',
             'fix.is_publish as is_publish'
         )
         ->where('fix.id', $id)
         ->join('building','fix.building_id','=','building.id')
         ->join('fix_status','fix.status','=','fix_status.id')
+        ->join('topic','fix.topic_id','=','topic.id')
         ->where('fix.deleted_at', null)->first();
 
         return response()->json([
@@ -177,9 +191,9 @@ class FixController extends Controller
     public function add(Request $request)
     {
         $request->validate([
-            'title as required',
-            'place as required',
-            'name as required',
+            'topic_id as required',
+            'building_id as required',
+            // 'name as required',
             'user_id as required',
             'fix_date as required',
             'is_publish as required',
@@ -210,6 +224,7 @@ class FixController extends Controller
         $data = new Fix;
         $data->title = $request->title;
         $data->detail = $request->detail;
+        $data->topic_id = $request->topic_id;
         $data->building_id = $request->building_id;
         $data->place = $request->place;
         $data->fix_img_file = $pathFixImg;
@@ -237,9 +252,9 @@ class FixController extends Controller
     public function edit($id, Request $request)
     {
         $request->validate([
-            'title as required',
-            'place as required',
-            'name as required',
+            'topic_id as required',
+            'building_id as required',
+            // 'name as required',
             'fix_date as required',
             'is_publish as required',
         ]);
@@ -278,6 +293,7 @@ class FixController extends Controller
 
         $data->title = $request->title;
         $data->detail = $request->detail;
+        $data->topic_id = $request->topic_id;
         $data->building_id = $request->building_id;
         $data->place = $request->place;
         $data->fix_img_file = $pathFixImg;

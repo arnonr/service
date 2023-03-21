@@ -11,6 +11,7 @@ use App\Http\Controllers\FixController;
 use App\Http\Controllers\FixStatusController;
 use App\Http\Controllers\BuildingController;
 use App\Http\Controllers\ActivityController;
+use App\Http\Controllers\TopicController;
 
 /*
 |--------------------------------------------------------------------------
@@ -93,6 +94,14 @@ Route::group(['prefix' => 'fix-status'], function () {
     Route::post('/', [FixStatusController::class, 'add']);
     Route::put('/', [FixStatusController::class, 'edit']);
     Route::delete('/{id}', [FixStatusController::class, 'delete']);
+});
+
+Route::group(['prefix' => 'topic'], function () {
+    Route::get('/{id}', [TopicController::class, 'get']);
+    Route::get('/', [TopicController::class, 'getAll']);
+    Route::post('/', [TopicController::class, 'add']);
+    Route::put('/', [TopicController::class, 'edit']);
+    Route::delete('/{id}', [TopicController::class, 'delete']);
 });
 
 

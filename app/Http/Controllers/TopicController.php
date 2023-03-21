@@ -3,16 +3,16 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\FixStatus;
+use App\Models\Topic;
 use Validator;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
-class FixStatusController extends Controller
+class TopicController extends Controller
 {
     public function getAll(Request $request)
     {
-        $data = FixStatus::select(
+        $items = Topic::select(
             'id as id',
             'name as name',
             'color as color',
@@ -27,34 +27,34 @@ class FixStatusController extends Controller
         
 
         if ($request->id) {
-            $data->where('id',$request->id);
+            $items->where('id',$request->id);
         }
 
         if ($request->name) {
-            $data->where('name','LIKE',"%".$request->name."%");
+            $items->where('name','LIKE',"%".$request->name."%");
         }
 
         if ($request->is_publish) {
-            $data->where('is_publish',$request->is_publish);
+            $items->where('is_publish',$request->is_publish);
         }
 
         $order_by = $request->order_by ? $request->order_by : 'id';
         $order = $request->order ? $request->order : 'asc';
 
-        $data = $data->orderBy($order_by, $order);
+        $items = $items->orderBy($order_by, $order);
             
-        $data = $data->get();
+        $items = $items->get();
 
         return response()->json([
             'message' => 'success',
-            'data' => $data,
+            'data' => $items,
         ], 200);
     }
 
     public function get($id)
     {
         // User DB
-        $data = FixStatus::select(
+        $item = Topic::select(
             'id as id',
             'name as name',
             'color as color',
@@ -70,7 +70,7 @@ class FixStatusController extends Controller
         
         return response()->json([
             'message' => 'success',
-            'data' => $data,
+            'data' => $item,
         ], 200);
     }
 
@@ -80,16 +80,16 @@ class FixStatusController extends Controller
             'name as required',
         ]);
 
-        $data = new FixStatus;
-        $data->name = $request->name;
-        $data->color = $request->color;
-        $data->is_publish = $request->is_publish;
-        $data->created_by = 'arnonr';
-        $data->save();
+        $item = new Topic;
+        $item->name = $request->name;
+        $item->color = $request->color;
+        $item->is_publish = $request->is_publish;
+        $item->created_by = 'arnonr';
+        $item->save();
 
         $responseData = [
             'message' => 'success',
-            'data' => $data,
+            'data' => $item,
         ];
         
         return response()->json($responseData, 200);
@@ -105,17 +105,17 @@ class FixStatusController extends Controller
         $id = $request->id;
         // $name = $request->name;
 
-        $data = FixStatus::where('id', $id)->first();
+        $item = Topic::where('id', $id)->first();
 
-        $data->name = $request->name;
-        $data->color = $request->color;
-        $data->is_publish = $request->is_publish;
-        $data->updated_by = 'arnonr';
-        $data->save();
+        $item->name = $request->name;
+        $item->color = $request->color;
+        $item->is_publish = $request->is_publish;
+        $item->updated_by = 'arnonr';
+        $item->save();
 
         $responseData = [
             'message' => 'success',
-            'data' => $data,
+            'data' => $item,
         ];
         
         return response()->json($responseData, 200);
@@ -123,10 +123,10 @@ class FixStatusController extends Controller
 
     public function delete($id)
     {
-        $data = FixStatus::where('id', $id)->first();
+        $item = Topic::where('id', $id)->first();
 
-        $data->deleted_at = Carbon::now();
-        $data->save();
+        $item->deleted_at = Carbon::now();
+        $item->save();
 
         $responseData = [
             'message' => 'success'

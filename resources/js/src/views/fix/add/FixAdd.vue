@@ -87,6 +87,7 @@ export default {
       id: null,
       title: "",
       detail: "",
+      topic_id: null,
       building_id: null,
       place: "",
       fix_img_file: null,
@@ -106,9 +107,9 @@ export default {
 
     const selectOptions = ref({
       // hosts: [],
-      fix_statuses: [
-      ],
+      fix_statuses: [],
       buildings: [],
+      topics: [],
     });
 
     store
@@ -128,6 +129,29 @@ export default {
           component: ToastificationContent,
           props: {
             title: "Error fetching Status list",
+            icon: "AlertTriangleIcon",
+            variant: "danger",
+          },
+        });
+      });
+
+    store
+      .dispatch("fix-add/fetchTopics")
+      .then((response) => {
+        const { data } = response.data;
+        selectOptions.value.topics = data.map((d) => {
+          return {
+            code: d.id,
+            title: d.name,
+          };
+        });
+      })
+      .catch((error) => {
+        console.log(error);
+        toast({
+          component: ToastificationContent,
+          props: {
+            title: "Error fetching Topic",
             icon: "AlertTriangleIcon",
             variant: "danger",
           },
@@ -168,7 +192,8 @@ export default {
     const onSubmit = (ctx, callback) => {
       overLay.value = true;
       let dataSend = {
-        title: item.title,
+        // title: item.title,
+        topic_id: item.topic_id.code,
         detail: item.detail,
         building_id: item.building_id.code,
         place: item.place,
@@ -274,7 +299,7 @@ label {
             class="b-row-width"
           >
             <!-- with prop append -->
-            <b-col cols="12" class="mt-2">
+            <!-- <b-col cols="12" class="mt-2">
               <b-form-group
                 label="หัวข้อแจ้งซ่อม"
                 label-for="title"
@@ -290,6 +315,31 @@ label {
                     placeholder=""
                     v-model="item.title"
                     :state="errors.length > 0 ? false : null"
+                  />
+                  <small class="text-danger">{{ errors[0] }}</small>
+                </validation-provider>
+              </b-form-group>
+            </b-col> -->
+
+            <b-col cols="12" class="mt-2">
+              <b-form-group
+                label="หัวข้อแจ้งซ่อม"
+                label-for="title"
+                label-cols-md="12"
+              >
+              <validation-provider
+                  #default="{ errors }"
+                  name="Title"
+                  rules="required"
+                >
+                  <v-select
+                    input-id="topic_id"
+                    label="title"
+                    v-model="item.topic_id"
+                    :dir="$store.state.appConfig.isRTL ? 'rtl' : 'ltr'"
+                    :options="selectOptions.topics"
+                    placeholder=""
+                    :clearable="false"
                   />
                   <small class="text-danger">{{ errors[0] }}</small>
                 </validation-provider>
@@ -342,7 +392,7 @@ label {
             <b-col cols="12">
               <b-form-group label="" label-for="place" label-cols-md="12">
                 <validation-provider #default="{ errors }" name="Place">
-                  <span class="text-black">ระบุสถานที่โดยละเอียด</span>
+                  <span class="text-black">ระบุสถานที่โดยละเอียด เช่น ชั้น 4 ห้อง 412 เป็นต้น</span>
                   <b-form-input
                     id="place"
                     placeholder=""

@@ -16,6 +16,15 @@ export default {
   // },
   actions: {
 
+    fetchTopics(ctx, queryParams) {
+      return new Promise((resolve, reject) => {
+        axios
+          .get(`/topic`,{ params: queryParams })
+          .then((response) => resolve(response))
+          .catch((error) => reject(error));
+      });
+    },
+
     fetchFixStatuses(ctx, queryParams) {
       return new Promise((resolve, reject) => {
         axios

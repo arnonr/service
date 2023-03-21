@@ -126,7 +126,8 @@ export default {
     const advancedSearch = reactive({
       title: "",
       building_id: null,
-      place: null,
+      topic_id: null,
+      place: "",
       name: "",
       email: "",
       phone: "",
@@ -139,8 +140,9 @@ export default {
 
     const resetAdvancedSearch = () => {
       advancedSearch.title = "";
+      advancedSearch.topic_id = null
       advancedSearch.building_id = null;
-      advancedSearch.place = null;
+      advancedSearch.place = "";
       advancedSearch.name = "";
       advancedSearch.email = "";
       advancedSearch.phone = "";
@@ -156,13 +158,33 @@ export default {
         label: "Id",
         visible: false,
       },
+      // {
+      //   key: "title",
+      //   label: "หัวข้อแจ้งซ่อม",
+      //   sortable: true,
+      //   visible: true,
+      //   // class: "text-center",
+      //   tdClass: "mw-3-5",
+      // },
       {
-        key: "title",
+        key: "topic_name",
         label: "หัวข้อแจ้งซ่อม",
         sortable: true,
         visible: true,
         // class: "text-center",
         tdClass: "mw-3-5",
+        // thStyle: {
+        //   width: "150px",
+        // },
+      },
+
+      {
+        key: "detail",
+        label: "รายละเอียด",
+        sortable: true,
+        visible: true,
+        // class: "text-center",
+        // tdClass: "mw-3-5",
       },
       {
         key: "building_name",
@@ -194,7 +216,7 @@ export default {
         key: "name",
         label: "ผู้แจ้ง",
         sortable: true,
-        visible: true,
+        visible: false,
         class: "text-center",
         tdClass: "mw-3-5",
       },
@@ -260,7 +282,31 @@ export default {
       ],
       fix_statuses: [],
       buildings: [],
+      topics: []
     });
+
+    store
+      .dispatch("fix-list/fetchTopics")
+      .then((response) => {
+        const { data } = response.data;
+        selectOptions.value.topics = data.map((d) => {
+          return {
+            code: d.id,
+            title: d.name,
+          };
+        });
+      })
+      .catch((error) => {
+        console.log(error);
+        toast({
+          component: ToastificationContent,
+          props: {
+            title: "Error fetching Topic",
+            icon: "AlertTriangleIcon",
+            variant: "danger",
+          },
+        });
+      });
 
     store
       .dispatch("fix-list/fetchFixStatuses")
@@ -319,6 +365,12 @@ export default {
       if (search.building_id) {
         if (search.building_id.hasOwnProperty("code")) {
           search.building_id = search.building_id.code;
+        }
+      }
+
+      if (search.topic_id) {
+        if (search.topic_id.hasOwnProperty("code")) {
+          search.topic_id = search.topic_id.code;
         }
       }
 
@@ -465,11 +517,26 @@ export default {
           </b-col>
         </b-row>
         <b-row>
-          <b-form-group label="เรื่อง/Title" label-for="title" class="col-md-4">
+          <!-- <b-form-group label="เรื่อง/Title" label-for="title" class="col-md-4">
             <b-form-input
               id="title"
               v-model="advancedSearch.title"
               placeholder="ชื่อเรื่อง..."
+            />
+          </b-form-group> -->
+
+          <b-form-group
+            label="หัวข้อเรื่อง/Title"
+            label-for="title"
+            class="col-md-4"
+          >
+            <v-select
+              v-model="advancedSearch.topic_id"
+              :dir="$store.state.appConfig.isRTL ? 'rtl' : 'ltr'"
+              label="title"
+              :clearable="true"
+              placeholder="-- All Title --"
+              :options="selectOptions.topics"
             />
           </b-form-group>
 
@@ -488,7 +555,7 @@ export default {
             />
           </b-form-group>
 
-          <b-form-group
+          <!-- <b-form-group
             label="ชื่อผู้แจ้ง/Name"
             label-for="name"
             class="col-md-4"
@@ -497,6 +564,18 @@ export default {
               id="name"
               v-model="advancedSearch.name"
               placeholder="ชื่อผู้แจ้ง..."
+            />
+          </b-form-group> -->
+
+          <b-form-group
+            label="สถานที่/Place"
+            label-for="place"
+            class="col-md-4"
+          >
+            <b-form-input
+              id="place"
+              v-model="advancedSearch.place"
+              placeholder="สถานที่..."
             />
           </b-form-group>
 

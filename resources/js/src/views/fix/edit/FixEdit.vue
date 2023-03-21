@@ -88,6 +88,7 @@ export default {
       id: null,
       title: "",
       detail: "",
+      topic_id: null,
       building_id: null,
       place: "",
       fix_img_file: null,
@@ -114,6 +115,7 @@ export default {
         { title: "ดำเนินการเสร็จสิ้น", code: 5 },
       ],
       buildings: [],
+      topics: [],
     });
 
     const statusList = {
@@ -138,6 +140,11 @@ export default {
         item.building_id = {
           title: data.building_name,
           code: data.building_id,
+        };
+
+        item.topic_id = {
+          title: data.topic_name,
+          code: data.topic_id,
         };
 
         item.fix_img_file_old = null;
@@ -182,6 +189,29 @@ export default {
       });
 
     store
+      .dispatch("fix-edit/fetchTopics")
+      .then((response) => {
+        const { data } = response.data;
+        selectOptions.value.topics = data.map((d) => {
+          return {
+            code: d.id,
+            title: d.name,
+          };
+        });
+      })
+      .catch((error) => {
+        console.log(error);
+        toast({
+          component: ToastificationContent,
+          props: {
+            title: "Error fetching Topic",
+            icon: "AlertTriangleIcon",
+            variant: "danger",
+          },
+        });
+      });
+
+    store
       .dispatch("fix-edit/fetchBuildings")
       .then((response) => {
         const { data } = response.data;
@@ -219,6 +249,7 @@ export default {
         id: item.id,
         title: item.title,
         detail: item.detail,
+        topic_id: item.topic_id.code,
         building_id: item.building_id.code,
         place: item.place,
         fix_img_file: item.fix_img_file,
@@ -322,7 +353,7 @@ label {
             class="b-row-width"
           >
             <!-- with prop append -->
-            <b-col cols="12" class="mt-2">
+            <!-- <b-col cols="12" class="mt-2">
               <b-form-group
                 label="หัวข้อแจ้งซ่อม"
                 label-for="title"
@@ -338,6 +369,31 @@ label {
                     placeholder=""
                     v-model="item.title"
                     :state="errors.length > 0 ? false : null"
+                  />
+                  <small class="text-danger">{{ errors[0] }}</small>
+                </validation-provider>
+              </b-form-group>
+            </b-col> -->
+
+            <b-col cols="12" class="mt-2">
+              <b-form-group
+                label="หัวข้อแจ้งซ่อม"
+                label-for="title"
+                label-cols-md="12"
+              >
+              <validation-provider
+                  #default="{ errors }"
+                  name="Title"
+                  rules="required"
+                >
+                  <v-select
+                    input-id="topic_id"
+                    label="title"
+                    v-model="item.topic_id"
+                    :dir="$store.state.appConfig.isRTL ? 'rtl' : 'ltr'"
+                    :options="selectOptions.topics"
+                    placeholder=""
+                    :clearable="false"
                   />
                   <small class="text-danger">{{ errors[0] }}</small>
                 </validation-provider>
