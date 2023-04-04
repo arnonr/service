@@ -205,11 +205,11 @@ class AuthController extends Controller
                     $userDB->username = $username;
                     $userDB->firstname = $nameArray[0];
                     $userDB->lastname = $lastname;
-                    $userDB->status = 1;
+                    $userDB->status = 2;
                     $userDB->icit_name = $json_data['userInfo']['displayname'];
                     $userDB->icit_email = $json_data['userInfo']['email'];
                     $userDB->password = bcrypt($password);
-                    
+
                     $userDB->save();
 
                 }else{
