@@ -186,29 +186,31 @@ class AuthController extends Controller
                 
                 // New User
                 if(!$userDB){
-                    $this->errorCode = self::ERROR_INVALID_CREDENTIALS;
-                    $this->errorMessage = "ไม่มีสิทธิ์เข้าใช้งาน";
-                    // $nameArray = explode(" ", $json_data['userInfo']['displayname']);
-                    // $lastname = '';
-                    // for($i = 0; $i < count($nameArray); $i++) {
-                    //     if($i != 0){
-                    //         $lastname = $lastname . " " . $nameArray[$i];
-                    //     }
-                    // }
+                    // $this->errorCode = self::ERROR_INVALID_CREDENTIALS;
+                    // $this->errorMessage = "ไม่มีสิทธิ์เข้าใช้งาน";
 
-                    // $userDB = new User;
-                    // $userDB->pid = $json_data['userInfo']['pid'];
-                    // $userDB->account_type = $json_data['userInfo']['account_type'];
-                    // $userDB->email = $json_data['userInfo']['email'];
-                    // $userDB->username = $username;
-                    // $userDB->firstname = $nameArray[0];
-                    // $userDB->lastname = $lastname;
-                    // $userDB->status = 1;
+                    $nameArray = explode(" ", $json_data['userInfo']['displayname']);
+                    $lastname = '';
+                    for($i = 0; $i < count($nameArray); $i++) {
+                        if($i != 0){
+                            $lastname = $lastname . " " . $nameArray[$i];
+                        }
+                    }
 
-                    // if($json_data['userInfo']['account_type'] == 'students'){
-                    //     $userDB->type = 'student';
-                        
-                    // }   
+                    $userDB = new User;
+                    $userDB->pid = $json_data['userInfo']['pid'];
+                    $userDB->account_type = $json_data['userInfo']['account_type'];
+                    $userDB->type = 'user';
+                    $userDB->email = $json_data['userInfo']['email'];
+                    $userDB->username = $username;
+                    $userDB->firstname = $nameArray[0];
+                    $userDB->lastname = $lastname;
+                    $userDB->status = 1;
+                    $userDB->icit_name = $json_data['userInfo']['displayname'];
+                    $userDB->icit_email = $json_data['userInfo']['email'];
+                    $userDB->password = bcrypt($password);
+                    
+                    $userDB->save();
 
                 }else{
                     $nameArray = explode(" ", $json_data['userInfo']['displayname']);
