@@ -650,7 +650,7 @@ h6,
             >{{
               item.success_date == null
                 ? dayjs().diff(dayjs(item.fix_date), "day")
-                : dayjs(row.item.success_date).diff(dayjs(row.item.fix_date), "day")
+                : dayjs(item.success_date).diff(dayjs(item.fix_date), "day")
             }}
             วัน</span
           >
