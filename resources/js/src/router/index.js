@@ -17,7 +17,7 @@ Vue.use(VueRouter);
 
 const router = new VueRouter({
   mode: "history",
-  base: process.env.BASE_URL,
+  base: location.port == '3000' ? process.env.BASE_URL : '/service',
   scrollBehavior() {
     return { x: 0, y: 0 };
   },
@@ -25,21 +25,8 @@ const router = new VueRouter({
     {
       path: "/",
       redirect: to => {
-        // the function receives the target route as the argument
-        // we return a redirect path/location here.
         return { path: '/list'}
       },
-      // name: "mou-list",
-      // component: () => import("@/views/mou/MouList.vue"),
-      // meta: {
-      //   pageTitle: "Mou",
-      //   breadcrumb: [
-      //     {
-      //       text: "Mou",
-      //       active: true,
-      //     },
-      //   ],
-      // },
     },
     ...fixs,
     ...pages,

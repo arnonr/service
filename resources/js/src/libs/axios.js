@@ -3,16 +3,21 @@ import Vue from 'vue'
 // axios
 import axios from 'axios'
 
-let baseUrl = "http://143.198.208.110:8107/api";
-if (location.hostname === "localhost" || location.hostname === "127.0.0.1"){
-  baseUrl = "http://localhost:8107/api/";
+let urlNew = '';
+if(location.port  == '3000'){
+    urlNew = 'http://localhost:3000/api/';
+}else{
+    if(location.hostname == 'localhost'){
+        urlNew = 'http://localhost/service/api/';
+    }else{
+        urlNew = 'http://sci.kmutnb.ac.th/service/api/';
+    }
 }
 
 const axiosIns = axios.create({
   // You can add your headers here
   // ================================
-  baseURL: baseUrl,
-  // baseURL: 'http://localhost:8105/api/',
+  baseURL: urlNew,
   // timeout: 1000,
   // headers: {'X-Custom-Header': 'foobar'}
 })
