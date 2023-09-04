@@ -719,7 +719,7 @@ export default {
                   {{
                     row.item.success_date == null
                       ? dayjs().diff(dayjs(row.item.fix_date), "day")
-                      : dayjs().diff(dayjs(row.item.success_date), "day")
+                      : dayjs(row.item.success_date).diff(dayjs(row.item.fix_date), "day")
                   }}
                   วัน
                 </template>
