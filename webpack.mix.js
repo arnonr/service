@@ -83,6 +83,8 @@ mix.copy('resources/css/loader.css', 'public/css')
 
 mix.webpackConfig({
   output: {
+    publicPath: "/",
+    // publicPath: '/service/',
     chunkFilename: 'js/chunks/[name].[chunkhash].js',
   },
 })
